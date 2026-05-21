@@ -1,0 +1,14 @@
+{
+    "agents": [
+        "codex"
+    ],
+    "cloud": false,
+    "packages": [
+        "spatie/laravel-translatable"
+    ],
+    "skills": [
+        "laravel-best-practices",
+        "tailwindcss-development",
+        "translatable-development"
+    ]
+}
