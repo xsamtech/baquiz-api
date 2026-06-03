@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\TestMessageSent;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,4 +18,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+Route::get('/broadcast-test', function () {
+
+    TestMessageSent::dispatch(
+        'Bonjour depuis Laravel Reverb'
+    );
+
+    return 'Event envoyé';
+});
+
+require __DIR__ . '/auth.php';
