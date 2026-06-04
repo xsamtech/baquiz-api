@@ -8,6 +8,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * ℹ️ Implémenter "ShouldBroadcastNow" pour que l'événement 
+ * soit diffusé immédiatement par WebSocket.
+ */
 class TestMessageSent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
@@ -23,6 +27,8 @@ class TestMessageSent implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
+     * ℹ️ Chaque utilisateur peut écouter un ou plusieurs canaux.
+     * 
      * @return array<int, Channel>
      */
     public function broadcastOn(): array

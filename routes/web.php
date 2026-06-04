@@ -18,8 +18,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+/**
+ * ℹ️ Laravel Reverb
+ * ===============
+ * Cette route sert seulement à déclencher un test.
+ * 
+ * Laravel fait deux choses :
+ *  1. Il envoie l’événement TestMessageSent
+ *  2. Il retourne "Event envoyé" dans le navigateur
+ * 
+ * Le texte "Event envoyé" est pour le navigateur.
+ * Le texte "Bonjour depuis Laravel Reverb" est envoyé vers React Native par WebSocket.
+ */
 Route::get('/broadcast-test', function () {
-
     TestMessageSent::dispatch(
         'Bonjour depuis Laravel Reverb'
     );
