@@ -15,11 +15,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\File as FileRule;
 
 class UserController extends ApiController
 {
@@ -103,10 +106,16 @@ class UserController extends ApiController
             ...$this->storeRules,
             'password' => ['required', 'string', 'min:8'],
             'confirm_password' => ['required', 'same:password'],
+            'avatar' => ['sometimes', FileRule::image()->max('5mb')],
         ]);
 
         unset($data['confirm_password']);
         $data['api_key'] = Str::random(80);
+
+        if (isset($data['avatar'])) {
+            $data['avatar_url'] = $this->storeAvatar($data['avatar']);
+            unset($data['avatar']);
+        }
 
         [$user, $passwordResets] = DB::transaction(function () use ($data): array {
             $user = User::query()->create($data);
@@ -264,26 +273,43 @@ class UserController extends ApiController
         }
 
         $data = $request->validate([
-            'file_name' => ['sometimes', 'nullable', 'string'],
-            'file_url' => ['required', 'string'],
-            'file_description' => ['sometimes', 'nullable', 'string'],
-            'file_type' => ['sometimes', 'nullable', 'in:photo,id_card'],
+            'avatar' => ['required', FileRule::image()->max('5mb')],
         ]);
 
-        $file = File::query()->create([
-            ...$data,
-            'file_type' => $data['file_type'] ?? 'photo',
-            'user_id' => $user->id,
-        ]);
-
-        $user->update(['avatar_url' => $file->file_url]);
+        $user->update(['avatar_url' => $this->storeAvatar($data['avatar'])]);
 
         return $this->handleResponse(
-            [
-                'users' => new UserResource($user->refresh()),
-                'files' => new FileResource($file),
-            ],
+            new UserResource($user->refresh()),
             Lang::get('api.users.avatar_changed')
+        );
+    }
+
+    public function addFiles(Request $request, int $id): JsonResponse
+    {
+        $user = User::query()->find($id);
+
+        if (! $user) {
+            return $this->handleError(null, Lang::get('api.users.not_found'), Response::HTTP_NOT_FOUND);
+        }
+
+        $data = $request->validate([
+            'files' => ['required', 'array', 'min:1'],
+            'files.*.file_name' => ['sometimes', 'nullable', 'string'],
+            'files.*.file_url' => ['required', 'string'],
+            'files.*.file_description' => ['sometimes', 'nullable', 'string'],
+            'files.*.file_type' => ['sometimes', 'nullable', 'in:video,photo,audio,document,id_card,ad,qr_code'],
+        ]);
+
+        $files = collect($data['files'])
+            ->map(fn (array $file): File => File::query()->create([
+                ...$file,
+                'file_type' => $file['file_type'] ?? 'photo',
+                'user_id' => $user->id,
+            ]));
+
+        return $this->handleResponse(
+            FileResource::collection($files),
+            Lang::get('api.files.store')
         );
     }
 
@@ -340,6 +366,13 @@ class UserController extends ApiController
                 : [$now->copy()->month(7)->startOfMonth(), $now->copy()->endOfYear()],
             'annually' => [$now->copy()->startOfYear(), $now->copy()->endOfYear()],
         };
+    }
+
+    private function storeAvatar(UploadedFile $avatar): string
+    {
+        $path = $avatar->store('avatars', 'public');
+
+        return Storage::disk('public')->url($path);
     }
 
     /**
