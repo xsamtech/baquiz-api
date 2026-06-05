@@ -9,6 +9,9 @@ use App\Models\File;
 use App\Models\Notification;
 use App\Models\PasswordReset;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -138,6 +141,43 @@ class UserController extends ApiController
         return $this->handleResponse(
             new UserResource($user),
             Lang::get('api.users.show')
+        );
+    }
+
+    public function usersWithHistoriesByPeriod(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'period' => ['required', 'in:daily,weekly,monthly,quarterly,semi-annually,annually'],
+        ]);
+        [$startsAt, $endsAt] = $this->periodRange($data['period']);
+
+        $users = User::query()
+            ->with(['histories' => fn (HasMany $query): HasMany => $query->whereBetween('created_at', [$startsAt, $endsAt])])
+            ->whereHas('histories', fn (Builder $query): Builder => $query->whereBetween('created_at', [$startsAt, $endsAt]))
+            ->latest('id')
+            ->paginate(20);
+
+        return $this->handleResponse(
+            UserResource::collection($users),
+            Lang::get('api.users.with_histories'),
+            $users->lastPage(),
+            $users->total()
+        );
+    }
+
+    public function usersWithMedals(): JsonResponse
+    {
+        $users = User::query()
+            ->with('medals')
+            ->whereHas('medals')
+            ->latest('id')
+            ->paginate(20);
+
+        return $this->handleResponse(
+            UserResource::collection($users),
+            Lang::get('api.users.with_medals'),
+            $users->lastPage(),
+            $users->total()
         );
     }
 
@@ -281,6 +321,25 @@ class UserController extends ApiController
                 'former_password' => null,
             ]))
             ->values();
+    }
+
+    /**
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function periodRange(string $period): array
+    {
+        $now = now();
+
+        return match ($period) {
+            'daily' => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+            'weekly' => [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()],
+            'monthly' => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
+            'quarterly' => [$now->copy()->startOfQuarter(), $now->copy()->endOfQuarter()],
+            'semi-annually' => $now->month <= 6
+                ? [$now->copy()->startOfYear(), $now->copy()->month(6)->endOfMonth()]
+                : [$now->copy()->month(7)->startOfMonth(), $now->copy()->endOfYear()],
+            'annually' => [$now->copy()->startOfYear(), $now->copy()->endOfYear()],
+        };
     }
 
     /**

@@ -48,6 +48,8 @@ class UserResource extends JsonResource
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
             'owner' => new UserResource($this->whenLoaded('owner')),
+            'histories' => HistoryResource::collection($this->whenLoaded('histories')),
+            'medals' => MedalResource::collection($this->whenLoaded('medals')),
         ];
     }
 }

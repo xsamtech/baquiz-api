@@ -2,6 +2,9 @@
 -- Schema baquiz
 --
 -- Datamodel for the "Baquiz" platform
+-- Copyright (c) 2026 All rigth reserved
+-- ====== Xsam Technologies ======
+-- https://xsamtech.com
 -- -----------------------------------------------------
 -- -----------------------------------------------------
 -- Table `users`
@@ -465,7 +468,14 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `messages` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `message_content` LONGTEXT NULL,
+  `event_title` TEXT NULL,
+  `event_description` LONGTEXT NULL,
+  `event_start_at` DATETIME NULL,
+  `event_end_at` DATETIME NULL,
+  `event_place` TEXT NULL,
   `answered_for` BIGINT NULL,
+  `type` ENUM('text', 'poll', 'event', 'contact', 'voice_note', 'file', 'call_audio', 'call_video') NOT NULL DEFAULT 'text',
+  `call_type` ENUM('outgoing', 'incoming', 'missed') NULL COMMENT 'Useful for « call_audio » or « call_video » type messages',
   `status` ENUM('read', 'unread') NOT NULL DEFAULT 'unread',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1512,6 +1522,53 @@ CREATE TABLE IF NOT EXISTS `hashtag_answer` (
   CONSTRAINT `fk_hashtaganswer_answers`
     FOREIGN KEY (`answer_id`)
     REFERENCES `answers` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `pollchoices`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `pollchoices` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `choice_content` TEXT NOT NULL,
+  `image_url` TEXT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `message_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_pollchoices_UNIQUE` (`id` ASC),
+  INDEX `fk_pollchoices_messages_idx` (`message_id` ASC),
+  CONSTRAINT `fk_pollchoices_messages`
+    FOREIGN KEY (`message_id`)
+    REFERENCES `messages` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `pollchoice_user`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `pollchoice_user` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `pollchoice_id` BIGINT NOT NULL,
+  `user_id` BIGINT NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_pollchoiceuser_UNIQUE` (`id` ASC),
+  INDEX `fk_pollchoiceuser_pollchoices_idx` (`pollchoice_id` ASC),
+  INDEX `fk_pollchoiceuser_users_idx` (`user_id` ASC),
+  CONSTRAINT `fk_pollchoiceuser_pollchoices`
+    FOREIGN KEY (`pollchoice_id`)
+    REFERENCES `pollchoices` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_pollchoiceuser_users`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;

@@ -16,6 +16,8 @@ return [
         'invalid_former_password' => 'The former password is invalid.',
         'type_changed' => 'User type updated successfully.',
         'avatar_changed' => 'User avatar updated successfully.',
+        'with_histories' => 'Users with histories retrieved successfully.',
+        'with_medals' => 'Users with medals retrieved successfully.',
     ],
     'roles' => [
         'index' => 'Roles retrieved successfully.',
@@ -160,6 +162,14 @@ return [
         'update' => 'Message updated successfully.',
         'destroy' => 'Message deleted successfully.',
         'not_found' => 'Message not found.',
+    ],
+    'pollchoices' => [
+        'index' => 'Poll choices retrieved successfully.',
+        'store' => 'Poll choice created successfully.',
+        'show' => 'Poll choice retrieved successfully.',
+        'update' => 'Poll choice updated successfully.',
+        'destroy' => 'Poll choice deleted successfully.',
+        'not_found' => 'Poll choice not found.',
     ],
     'files' => [
         'index' => 'Files retrieved successfully.',

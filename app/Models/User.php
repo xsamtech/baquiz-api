@@ -100,6 +100,13 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'addressee_user_id');
     }
 
+    public function pollchoices(): BelongsToMany
+    {
+        return $this->belongsToMany(Pollchoice::class, 'pollchoice_user')
+            ->withPivot('id')
+            ->withTimestamps();
+    }
+
     public function files(): HasMany
     {
         return $this->hasMany(File::class, 'user_id');

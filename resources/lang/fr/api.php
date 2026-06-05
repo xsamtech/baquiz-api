@@ -16,6 +16,8 @@ return [
         'invalid_former_password' => 'L ancien mot de passe est invalide.',
         'type_changed' => 'Type de l utilisateur modifié avec succès.',
         'avatar_changed' => 'Avatar de l utilisateur modifié avec succès.',
+        'with_histories' => 'Utilisateurs avec historiques récupérés avec succès.',
+        'with_medals' => 'Utilisateurs avec médailles récupérés avec succès.',
     ],
     'roles' => [
         'index' => 'Rôles récupérés avec succès.',
@@ -160,6 +162,14 @@ return [
         'update' => 'Message modifié avec succès.',
         'destroy' => 'Message supprimé avec succès.',
         'not_found' => 'Message introuvable.',
+    ],
+    'pollchoices' => [
+        'index' => 'Choix de sondage récupérés avec succès.',
+        'store' => 'Choix de sondage créé avec succès.',
+        'show' => 'Choix de sondage récupéré avec succès.',
+        'update' => 'Choix de sondage modifié avec succès.',
+        'destroy' => 'Choix de sondage supprimé avec succès.',
+        'not_found' => 'Choix de sondage introuvable.',
     ],
     'files' => [
         'index' => 'Files récupérés avec succès.',

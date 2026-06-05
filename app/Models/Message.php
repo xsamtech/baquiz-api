@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['message_content', 'answered_for', 'status', 'user_id', 'addressee_user_id', 'addressee_circle_id'])]
+#[Fillable(['message_content', 'event_title', 'event_description', 'event_start_at', 'event_end_at', 'event_place', 'answered_for', 'type', 'call_type', 'status', 'user_id', 'addressee_user_id', 'addressee_circle_id'])]
 class Message extends Model
 {
     use SoftDeletes;
@@ -23,6 +23,8 @@ class Message extends Model
     {
         return [
             'answered_for' => 'integer',
+            'event_start_at' => 'datetime',
+            'event_end_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
@@ -50,6 +52,11 @@ class Message extends Model
     public function files(): HasMany
     {
         return $this->hasMany(File::class, 'message_id');
+    }
+
+    public function pollchoices(): HasMany
+    {
+        return $this->hasMany(Pollchoice::class, 'message_id');
     }
 
     public function hashtags(): BelongsToMany
