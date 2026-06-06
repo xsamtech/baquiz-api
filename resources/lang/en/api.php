@@ -11,6 +11,8 @@ return [
         'login' => 'Login successful.',
         'invalid_credentials' => 'Invalid credentials.',
         'not_verified' => 'Please verify your email address or phone number.',
+        'not_verified_email' => 'Please verify your email address.',
+        'not_verified_phone' => 'Please verify your phone number.',
         'status_changed' => 'User status updated successfully.',
         'password_changed' => 'User password updated successfully.',
         'invalid_former_password' => 'The former password is invalid.',

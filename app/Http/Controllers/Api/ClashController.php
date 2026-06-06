@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\Concerns\HandlesSocialContent;
 use App\Http\Resources\ClashResource;
 use App\Models\Clash;
 use App\Models\Notification;
+use App\Models\Role;
 use App\Models\Subscription;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -67,6 +69,7 @@ class ClashController extends ApiController
 
         $clash = DB::transaction(function () use ($data): Clash {
             $clash = Clash::query()->create($data);
+            $this->selectQuizMasterRole($clash);
             $this->syncHashtags($clash, 'clash_description');
             $this->notifyMentionedUsers($clash->user_id, $clash->clash_description, ['clash_id' => $clash->id]);
             $this->notifyFollowers($clash);
@@ -222,6 +225,62 @@ class ClashController extends ApiController
                 'to_user_id' => $followerId,
                 'clash_id' => $clash->id,
             ]));
+    }
+
+    private function selectQuizMasterRole(Clash $clash): void
+    {
+        if (! $clash->user_id) {
+            return;
+        }
+
+        $user = User::query()
+            ->with('roles')
+            ->find($clash->user_id);
+
+        if (! $user || $this->hasRole($user, 'Administrateur')) {
+            return;
+        }
+
+        $quizMasterRole = $this->quizMasterRole();
+
+        DB::table('role_user')
+            ->where('user_id', $user->id)
+            ->update(['is_selected' => false]);
+
+        $user->roles()->syncWithoutDetaching([
+            $quizMasterRole->id => ['is_selected' => true],
+        ]);
+    }
+
+    private function hasRole(User $user, string $roleName): bool
+    {
+        return $user->roles->contains(
+            fn (Role $role): bool => $role->getTranslation('role_name', 'fr') === $roleName
+        );
+    }
+
+    private function quizMasterRole(): Role
+    {
+        $role = Role::query()
+            ->whereJsonContainsLocale('role_name', 'fr', 'Quiz master')
+            ->first();
+
+        if ($role) {
+            return $role;
+        }
+
+        return Role::query()->create([
+            'role_name' => [
+                'fr' => 'Quiz master',
+                'en' => 'Quiz master',
+                'ln' => 'Quiz master',
+            ],
+            'role_description' => [
+                'fr' => 'Personne ou organisation qui a créé au moins une fois un clash sur la plateforme.',
+                'en' => 'Person or organization that has created at least one clash on the platform.',
+                'ln' => 'Moto to ebongiseli oyo esili kosala clash ata mbala moko na plateforme.',
+            ],
+        ]);
     }
 
     /**

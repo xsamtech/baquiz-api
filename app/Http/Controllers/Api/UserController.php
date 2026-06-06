@@ -201,24 +201,16 @@ class UserController extends ApiController
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::query()
-            ->where('email', $data['username'])
-            ->orWhere('phone', $data['username'])
-            ->orWhere('username', $data['username'])
-            ->first();
+        [$user, $credentialType] = $this->findUserForLogin($data['username']);
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             return $this->handleError(null, Lang::get('api.users.invalid_credentials'), Response::HTTP_UNAUTHORIZED);
         }
 
-        $passwordResets = $this->missingVerificationResets($user);
+        $verificationMessage = $this->missingVerificationMessage($user, $credentialType);
 
-        if ($passwordResets->isNotEmpty()) {
-            return $this->handleError(
-                ['password_resets' => PasswordResetResource::collection($passwordResets)],
-                Lang::get('api.users.not_verified'),
-                Response::HTTP_FORBIDDEN
-            );
+        if ($verificationMessage) {
+            return $this->handleError(null, Lang::get($verificationMessage), Response::HTTP_FORBIDDEN);
         }
 
         $user->forceFill(['api_key' => Str::random(80)])->save();
@@ -336,25 +328,40 @@ class UserController extends ApiController
         ]);
     }
 
-    /**
-     * @return Collection<int, PasswordReset>
-     */
-    private function missingVerificationResets(User $user)
+    private function missingVerificationMessage(User $user, string $credentialType): ?string
     {
-        $needsEmailVerification = filled($user->email) && blank($user->email_verified_at);
-        $needsPhoneVerification = filled($user->phone) && blank($user->phone_verfied_at);
+        if ($credentialType === 'email' && filled($user->email) && blank($user->email_verified_at)) {
+            return 'api.users.not_verified_email';
+        }
 
-        return collect([
-            'email' => $needsEmailVerification,
-            'phone' => $needsPhoneVerification,
-        ])
-            ->filter()
-            ->map(fn (bool $unused, string $column): PasswordReset => PasswordReset::query()->create([
-                $column => $user->{$column},
-                'token' => Str::upper(Str::random(6)),
-                'former_password' => null,
-            ]))
-            ->values();
+        if ($credentialType === 'phone' && filled($user->phone) && blank($user->phone_verfied_at)) {
+            return 'api.users.not_verified_phone';
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{0: ?User, 1: string}
+     */
+    private function findUserForLogin(string $username): array
+    {
+        $user = User::query()->where('email', $username)->first();
+
+        if ($user) {
+            return [$user, 'email'];
+        }
+
+        $user = User::query()->where('phone', $username)->first();
+
+        if ($user) {
+            return [$user, 'phone'];
+        }
+
+        return [
+            User::query()->where('username', $username)->first(),
+            'username',
+        ];
     }
 
     /**
@@ -400,9 +407,9 @@ class UserController extends ApiController
                 'ln' => 'Membre',
             ],
             'role_description' => [
-                'fr' => 'Personne ou organisation qui utilise la plateforme',
-                'en' => 'Person or organization that uses the platform',
-                'ln' => 'Moto to ebongiseli oyo esalelaka plateforme',
+                'fr' => 'Personne ou organisation qui utilise les fonctionnalités de la plateforme.',
+                'en' => 'Person or organization that uses the platform\'s features.',
+                'ln' => 'Moto to pe ebongiseli oyo esalelaka makambo ya plateforme.',
             ],
         ]);
     }

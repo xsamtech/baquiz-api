@@ -45,6 +45,7 @@ Route::post('users/login', [UserController::class, 'login']);
 Route::get('users/histories/period', [UserController::class, 'usersWithHistoriesByPeriod']);
 Route::get('users/medals', [UserController::class, 'usersWithMedals']);
 Route::get('users/username/{username}', [UserController::class, 'findByUsername']);
+Route::get('hashtags/{hashtag}/entities', [HashtagController::class, 'entities']);
 Route::patch('users/{id}/status', [UserController::class, 'changeStatus']);
 Route::patch('users/{id}/password', [UserController::class, 'changePassword']);
 Route::patch('users/{id}/type', [UserController::class, 'changeType']);

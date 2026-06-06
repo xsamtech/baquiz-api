@@ -29,6 +29,7 @@ class UserAvatarFilesTest extends TestCase
             $table->string('email')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('phone')->nullable();
+            $table->timestamp('phone_verfied_at')->nullable();
             $table->string('username')->nullable();
             $table->string('password');
             $table->string('api_key')->nullable();
@@ -155,6 +156,52 @@ class UserAvatarFilesTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.users.roles.0.role_name', 'Membre')
             ->assertJsonPath('data.users.roles.0.role_description', 'Moto to ebongiseli oyo esalelaka plateforme');
+    }
+
+    public function test_login_allows_verified_email_but_blocks_unverified_phone(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'verified-email@example.com',
+            'email_verified_at' => now(),
+            'phone' => '+243810000001',
+            'phone_verfied_at' => null,
+        ]);
+
+        $this->withHeader('X-localization', 'en')->postJson('/api/users/login', [
+            'username' => $user->email,
+            'password' => 'password',
+        ])->assertOk();
+
+        $this->withHeader('X-localization', 'en')->postJson('/api/users/login', [
+            'username' => $user->phone,
+            'password' => 'password',
+        ])->assertForbidden()
+            ->assertJsonPath('message', 'Please verify your phone number.');
+
+        $this->assertDatabaseCount('password_resets', 0);
+    }
+
+    public function test_login_allows_verified_phone_but_blocks_unverified_email(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'unverified-email@example.com',
+            'email_verified_at' => null,
+            'phone' => '+243810000002',
+            'phone_verfied_at' => now(),
+        ]);
+
+        $this->withHeader('X-localization', 'en')->postJson('/api/users/login', [
+            'username' => $user->phone,
+            'password' => 'password',
+        ])->assertOk();
+
+        $this->withHeader('X-localization', 'en')->postJson('/api/users/login', [
+            'username' => $user->email,
+            'password' => 'password',
+        ])->assertForbidden()
+            ->assertJsonPath('message', 'Please verify your email address.');
+
+        $this->assertDatabaseCount('password_resets', 0);
     }
 
     public function test_update_avatar_saves_avatar_without_creating_file_record(): void

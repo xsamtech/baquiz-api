@@ -11,6 +11,8 @@ return [
         'login' => 'Connexion reussie.',
         'invalid_credentials' => 'Identifiants invalides.',
         'not_verified' => 'Veuillez verifier votre adresse email ou votre numero de telephone.',
+        'not_verified_email' => 'Veuillez verifier votre adresse email.',
+        'not_verified_phone' => 'Veuillez verifier votre numero de telephone.',
         'status_changed' => 'Statut de l utilisateur modifié avec succès.',
         'password_changed' => 'Mot de passe de l utilisateur modifié avec succès.',
         'invalid_former_password' => 'L ancien mot de passe est invalide.',
