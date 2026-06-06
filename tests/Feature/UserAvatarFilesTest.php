@@ -68,6 +68,25 @@ class UserAvatarFilesTest extends TestCase
             $table->softDeletes();
             $table->foreignId('user_id')->nullable();
         });
+
+        Schema::create('roles', function (Blueprint $table): void {
+            $table->id();
+            $table->json('role_name');
+            $table->json('role_description')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->foreignId('deleted_by')->nullable();
+        });
+
+        Schema::create('role_user', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('role_id');
+            $table->foreignId('user_id');
+            $table->boolean('is_selected')->default(false);
+            $table->timestamps();
+        });
     }
 
     public function test_store_saves_avatar_with_storage_and_sets_avatar_url(): void
@@ -90,6 +109,52 @@ class UserAvatarFilesTest extends TestCase
         $this->assertStringContainsString('/storage/avatars/', $avatarUrl);
         Storage::disk('public')->assertExists(Str($avatarUrl)->after('/storage/')->toString());
         $this->assertDatabaseCount('files', 0);
+    }
+
+    public function test_store_creates_single_password_reset_and_member_role_when_email_and_phone_are_present(): void
+    {
+        $response = $this
+            ->withHeader('X-localization', 'en')
+            ->postJson('/api/users', [
+                'firstname' => 'Linus',
+                'email' => 'linus@example.com',
+                'phone' => '+243810000000',
+                'password' => 'password',
+                'confirm_password' => 'password',
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.users.roles.0.role_name', 'Member')
+            ->assertJsonPath('data.password_resets.0.email', 'linus@example.com')
+            ->assertJsonPath('data.password_resets.0.phone', '+243810000000');
+
+        $this->assertDatabaseCount('password_resets', 1);
+        $this->assertDatabaseHas('roles', [
+            'role_name' => json_encode([
+                'fr' => 'Membre',
+                'en' => 'Member',
+                'ln' => 'Membre',
+            ]),
+        ]);
+        $this->assertDatabaseHas('role_user', [
+            'user_id' => $response->json('data.users.id'),
+            'is_selected' => true,
+        ]);
+    }
+
+    public function test_x_localization_header_changes_translatable_resource_locale(): void
+    {
+        $response = $this
+            ->withHeader('X-localization', 'ln')
+            ->postJson('/api/users', [
+                'firstname' => 'Locale',
+                'password' => 'password',
+                'confirm_password' => 'password',
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.users.roles.0.role_name', 'Membre')
+            ->assertJsonPath('data.users.roles.0.role_description', 'Moto to ebongiseli oyo esalelaka plateforme');
     }
 
     public function test_update_avatar_saves_avatar_without_creating_file_record(): void

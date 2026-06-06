@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Models\File;
 use App\Models\Notification;
 use App\Models\PasswordReset;
+use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -120,6 +121,9 @@ class UserController extends ApiController
         [$user, $passwordResets] = DB::transaction(function () use ($data): array {
             $user = User::query()->create($data);
             $passwordResets = $this->createPasswordResets($user);
+            $user->roles()->syncWithoutDetaching([
+                $this->memberRole()->id => ['is_selected' => true],
+            ]);
             Notification::query()->create([
                 'type' => 'welcome_new_user',
                 'to_user_id' => $user->id,
@@ -130,7 +134,7 @@ class UserController extends ApiController
 
         return $this->handleResponse(
             [
-                'users' => new UserResource($user),
+                'users' => new UserResource($user->load('roles')),
                 'password_resets' => PasswordResetResource::collection($passwordResets),
             ],
             Lang::get('api.users.store')
@@ -318,14 +322,18 @@ class UserController extends ApiController
      */
     private function createPasswordResets(User $user)
     {
-        return collect(['email', 'phone'])
-            ->filter(fn (string $column): bool => filled($user->{$column}))
-            ->map(fn (string $column): PasswordReset => PasswordReset::query()->create([
-                $column => $user->{$column},
+        if (blank($user->email) && blank($user->phone)) {
+            return collect();
+        }
+
+        return collect([
+            PasswordReset::query()->create([
+                'email' => $user->email,
+                'phone' => $user->phone,
                 'token' => Str::upper(Str::random(6)),
                 'former_password' => null,
-            ]))
-            ->values();
+            ]),
+        ]);
     }
 
     /**
@@ -373,6 +381,30 @@ class UserController extends ApiController
         $path = $avatar->store('avatars', 'public');
 
         return Storage::disk('public')->url($path);
+    }
+
+    private function memberRole(): Role
+    {
+        $role = Role::query()
+            ->whereJsonContainsLocale('role_name', 'fr', 'Membre')
+            ->first();
+
+        if ($role) {
+            return $role;
+        }
+
+        return Role::query()->create([
+            'role_name' => [
+                'fr' => 'Membre',
+                'en' => 'Member',
+                'ln' => 'Membre',
+            ],
+            'role_description' => [
+                'fr' => 'Personne ou organisation qui utilise la plateforme',
+                'en' => 'Person or organization that uses the platform',
+                'ln' => 'Moto to ebongiseli oyo esalelaka plateforme',
+            ],
+        ]);
     }
 
     /**
