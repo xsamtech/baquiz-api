@@ -2,7 +2,7 @@
 -- Schema baquiz
 --
 -- Datamodel for the "Baquiz" platform
--- Copyright (c) 2026 All rigth reserved
+-- Copyright (c) 2026 All rigths reserved
 -- ====== Xsam Technologies ======
 -- https://xsamtech.com
 -- -----------------------------------------------------
@@ -11,6 +11,7 @@
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `users` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `firstname` VARCHAR(255) NULL,
   `lastname` VARCHAR(255) NULL,
   `surname` VARCHAR(255) NULL,
@@ -42,16 +43,17 @@ CREATE TABLE IF NOT EXISTS `users` (
   `two_factor_phone_confirmed_at` TIMESTAMP NULL,
   `tips_at_every_login` TINYINT NOT NULL DEFAULT 1,
   `is_online` TINYINT NOT NULL DEFAULT 1,
+  `certified_at` DATETIME NULL,
   `status` ENUM('created', 'activated', 'disabled', 'blocked', 'deleted') NOT NULL DEFAULT 'created',
-  `type` ENUM('uncertified', 'certified') NOT NULL DEFAULT 'uncertified',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` TIMESTAMP NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_users_UNIQUE` (`id` ASC),
-  UNIQUE INDEX `email_UNIQUE` (`email` ASC),
-  UNIQUE INDEX `phone_UNIQUE` (`phone` ASC),
-  UNIQUE INDEX `username_UNIQUE` (`username` ASC))
+  UNIQUE INDEX `email_users_UNIQUE` (`email` ASC),
+  UNIQUE INDEX `phone_users_UNIQUE` (`phone` ASC),
+  UNIQUE INDEX `username_users_UNIQUE` (`username` ASC),
+  UNIQUE INDEX `uuid_users_UNIQUE` (`uuid` ASC))
 ENGINE = InnoDB;
 
 
@@ -101,9 +103,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `password_resets`
+-- Table `password_reset_tokens`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `password_resets` (
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `email` VARCHAR(255) NULL,
   `phone` VARCHAR(45) NULL,
@@ -112,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `password_resets` (
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_passwordresets_UNIQUE` (`id` ASC))
+  UNIQUE INDEX `id_passwordresettokens_UNIQUE` (`id` ASC))
 ENGINE = InnoDB;
 
 
@@ -201,6 +203,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `levels` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `level_name` JSON NOT NULL,
   `min_score` INT NULL,
   `max_score` INT NULL,
@@ -214,7 +217,8 @@ CREATE TABLE IF NOT EXISTS `levels` (
   `updated_by` BIGINT NULL,
   `deleted_by` BIGINT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_levels_UNIQUE` (`id` ASC))
+  UNIQUE INDEX `id_levels_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `uuid_levels_UNIQUE` (`uuid` ASC))
 ENGINE = InnoDB;
 
 
@@ -223,6 +227,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `fields` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `field_name` JSON NOT NULL,
   `field_description` JSON NULL,
   `icon` VARCHAR(255) NULL,
@@ -235,7 +240,8 @@ CREATE TABLE IF NOT EXISTS `fields` (
   `updated_by` BIGINT NULL,
   `deleted_by` BIGINT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_fields_UNIQUE` (`id` ASC))
+  UNIQUE INDEX `id_fields_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `uuid_fields_UNIQUE` (`uuid` ASC))
 ENGINE = InnoDB;
 
 
@@ -244,6 +250,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `clashs` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `clash_code` TEXT NULL,
   `clash_description` LONGTEXT NULL,
   `start_at` DATETIME NULL,
@@ -261,6 +268,7 @@ CREATE TABLE IF NOT EXISTS `clashs` (
   UNIQUE INDEX `id_clashs_UNIQUE` (`id` ASC),
   INDEX `fk_clashs_fields_idx` (`field_id` ASC),
   INDEX `fk_clashs_users_idx` (`user_id` ASC),
+  UNIQUE INDEX `uuid_clashs_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_clashs_fields`
     FOREIGN KEY (`field_id`)
     REFERENCES `fields` (`id`)
@@ -279,6 +287,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `subjects` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `subject_name` TEXT NOT NULL,
   `subject_description` LONGTEXT NULL,
   `max_rating` DECIMAL(12,2) NULL,
@@ -293,6 +302,7 @@ CREATE TABLE IF NOT EXISTS `subjects` (
   UNIQUE INDEX `id_subjects_UNIQUE` (`id` ASC),
   INDEX `fk_subjects_levels_idx` (`level_id` ASC),
   INDEX `fk_subjects_clashs_idx` (`clash_id` ASC),
+  UNIQUE INDEX `uuid_subjects_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_subjects_levels`
     FOREIGN KEY (`level_id`)
     REFERENCES `levels` (`id`)
@@ -311,6 +321,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `domains` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `domain_name` JSON NOT NULL,
   `domain_description` JSON NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -320,7 +331,8 @@ CREATE TABLE IF NOT EXISTS `domains` (
   `updated_by` BIGINT NULL,
   `deleted_by` BIGINT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_domains_UNIQUE` (`id` ASC))
+  UNIQUE INDEX `id_domains_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `uuid_domains_UNIQUE` (`uuid` ASC))
 ENGINE = InnoDB;
 
 
@@ -329,6 +341,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `questions` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `question_content` LONGTEXT NULL,
   `expected_time` INT NULL COMMENT 'Time in seconds',
   `percentages_removed` DECIMAL(3,2) NULL COMMENT 'The percentages that are subtracted from a student who gives a correct answer, but exceeds the expected time to answer.',
@@ -347,6 +360,7 @@ CREATE TABLE IF NOT EXISTS `questions` (
   UNIQUE INDEX `id_questions_UNIQUE` (`id` ASC),
   INDEX `fk_questions_subjects_idx` (`subject_id` ASC),
   INDEX `fk_questions_domains_idx` (`domain_id` ASC),
+  UNIQUE INDEX `uuid_questions_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_questions_subjects`
     FOREIGN KEY (`subject_id`)
     REFERENCES `subjects` (`id`)
@@ -365,6 +379,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `assertions` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `assertion_content` LONGTEXT NOT NULL,
   `is_real_answer` TINYINT NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -374,6 +389,7 @@ CREATE TABLE IF NOT EXISTS `assertions` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_assertions_UNIQUE` (`id` ASC),
   INDEX `fk_assertions_questions_idx` (`question_id` ASC),
+  UNIQUE INDEX `uuid_assertions_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_assertions_questions`
     FOREIGN KEY (`question_id`)
     REFERENCES `questions` (`id`)
@@ -387,6 +403,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `answers` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `answer_content` LONGTEXT NULL,
   `time_taken` INT NULL COMMENT 'Time in seconds',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -398,6 +415,7 @@ CREATE TABLE IF NOT EXISTS `answers` (
   UNIQUE INDEX `id_answers_UNIQUE` (`id` ASC),
   INDEX `fk_answers_questions_idx` (`question_id` ASC),
   INDEX `fk_answers_users_idx` (`user_id` ASC),
+  UNIQUE INDEX `uuid_answers_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_answers_questions`
     FOREIGN KEY (`question_id`)
     REFERENCES `questions` (`id`)
@@ -416,6 +434,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `comments` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `comment_content` LONGTEXT NULL,
   `answered_for` BIGINT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -427,6 +446,7 @@ CREATE TABLE IF NOT EXISTS `comments` (
   UNIQUE INDEX `id_comments_UNIQUE` (`id` ASC),
   INDEX `fk_comments_clashs_idx` (`clash_id` ASC),
   INDEX `fk_comments_users_idx` (`user_id` ASC),
+  UNIQUE INDEX `uuid_comments_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_comments_clashs`
     FOREIGN KEY (`clash_id`)
     REFERENCES `clashs` (`id`)
@@ -445,6 +465,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `circles` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `circle_name` TEXT NOT NULL,
   `profile_photo` TEXT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -454,6 +475,7 @@ CREATE TABLE IF NOT EXISTS `circles` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_circles_UNIQUE` (`id` ASC),
   INDEX `fk_circles_users_idx` (`user_id` ASC),
+  UNIQUE INDEX `uuid_circles_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_circles_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
@@ -467,6 +489,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `messages` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `message_content` LONGTEXT NULL,
   `event_title` TEXT NULL,
   `event_description` LONGTEXT NULL,
@@ -488,6 +511,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
   INDEX `fk_messages_users_1_idx` (`user_id` ASC),
   INDEX `fk_messages_users_2_idx` (`addressee_user_id` ASC),
   INDEX `fk_messages_circles_idx` (`addressee_circle_id` ASC),
+  UNIQUE INDEX `uuid_messages_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_messages_users_1`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
@@ -598,6 +622,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` TIMESTAMP NULL,
@@ -621,6 +646,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   INDEX `fk_notifications_questions_idx` (`question_id` ASC),
   INDEX `fk_notifications_assertions_idx` (`assertion_id` ASC),
   INDEX `fk_notifications_answers_idx` (`answer_id` ASC),
+  UNIQUE INDEX `uuid_notifications_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_notifications_users1`
     FOREIGN KEY (`from_user_id`)
     REFERENCES `users` (`id`)
@@ -697,6 +723,7 @@ COMMENT = 'Display a total rating of a member';
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `promo_codes` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `code` VARCHAR(45) NOT NULL,
   `validity` INT NOT NULL,
   `status` ENUM('active', 'expired') NOT NULL DEFAULT 'expired',
@@ -707,54 +734,10 @@ CREATE TABLE IF NOT EXISTS `promo_codes` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_promocodes_UNIQUE` (`id` ASC),
   INDEX `fk_promocodes_users_idx` (`user_id` ASC),
-  UNIQUE INDEX `code_UNIQUE` (`code` ASC),
+  UNIQUE INDEX `uuid_promocodes_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_promocodes_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `about_subjects`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `about_subjects` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT,
-  `subject` JSON NULL,
-  `subject_description` JSON NOT NULL,
-  `status` ENUM('selected', 'rejected') NOT NULL DEFAULT 'rejected',
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` TIMESTAMP NULL,
-  `created_by` BIGINT NULL,
-  `updated_by` BIGINT NULL,
-  `deleted_by` BIGINT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_aboutsubjects_UNIQUE` (`id` ASC))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `about_titles`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `about_titles` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT,
-  `title` JSON NOT NULL,
-  `alias` VARCHAR(255) NULL,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` TIMESTAMP NULL,
-  `created_by` BIGINT NULL,
-  `updated_by` BIGINT NULL,
-  `deleted_by` BIGINT NULL,
-  `about_subject_id` BIGINT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_abouttitles_UNIQUE` (`id` ASC),
-  INDEX `fk_abouttitles_aboutsubjects_idx` (`about_subject_id` ASC),
-  CONSTRAINT `fk_abouttitles_aboutsubjects`
-    FOREIGN KEY (`about_subject_id`)
-    REFERENCES `about_subjects` (`id`)
     ON DELETE SET NULL
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
@@ -765,50 +748,21 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `blocked_users` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `complaint` LONGTEXT NULL,
   `is_unlocked` TINYINT NOT NULL DEFAULT 0,
+  `reason_uuid` CHAR(36) NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` TIMESTAMP NULL,
   `user_id` BIGINT NOT NULL,
-  `about_title_id` BIGINT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_blockedusers_UNIQUE` (`id` ASC),
   INDEX `fk_blockedusers_users_idx` (`user_id` ASC),
-  INDEX `fk_blockedusers_abouttitles_idx` (`about_title_id` ASC),
+  UNIQUE INDEX `uuid_blockedusers_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_blockedusers_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  CONSTRAINT `fk_blockedusers_abouttitles`
-    FOREIGN KEY (`about_title_id`)
-    REFERENCES `about_titles` (`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `about_contents`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `about_contents` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT,
-  `subtitle` JSON NULL,
-  `content` JSON NOT NULL,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` TIMESTAMP NULL,
-  `created_by` BIGINT NULL,
-  `updated_by` BIGINT NULL,
-  `deleted_by` BIGINT NULL,
-  `about_title_id` BIGINT NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_aboutcontents_UNIQUE` (`id` ASC),
-  INDEX `fk_aboutcontents_abouttitles_idx` (`about_title_id` ASC),
-  CONSTRAINT `fk_aboutcontents_abouttitles`
-    FOREIGN KEY (`about_title_id`)
-    REFERENCES `about_titles` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
@@ -847,6 +801,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `money_transfers` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `has_commission` TINYINT NOT NULL DEFAULT 0,
   `commission_amount` DECIMAL(12,2) NULL,
   `status` ENUM('done', 'failed') NULL,
@@ -857,6 +812,7 @@ CREATE TABLE IF NOT EXISTS `money_transfers` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_moneytransfers_UNIQUE` (`id` ASC),
   INDEX `fk_moneytransfers_payments_idx` (`payment_id` ASC),
+  UNIQUE INDEX `uuid_moneytransfers_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_moneytransfers_payments`
     FOREIGN KEY (`payment_id`)
     REFERENCES `payments` (`id`)
@@ -871,6 +827,7 @@ COMMENT = 'Manage user money transfers';
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pricings` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `pricing_name` JSON NOT NULL,
   `pricing_type` ENUM('money', 'percentage') NOT NULL DEFAULT 'money' COMMENT 'The user must pay directly or pay a commission (percentage) on the payment they receive',
   `reason` ENUM('clash_create', 'clash_participate', 'clash_boost', 'user_certfied', 'ad') NULL,
@@ -882,7 +839,8 @@ CREATE TABLE IF NOT EXISTS `pricings` (
   `updated_by` BIGINT NULL,
   `deleted_by` BIGINT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_pricings_UNIQUE` (`id` ASC))
+  UNIQUE INDEX `id_pricings_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `uuid_pricings_UNIQUE` (`uuid` ASC))
 ENGINE = InnoDB;
 
 
@@ -891,6 +849,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pricing_descriptions` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `description_title` JSON NOT NULL,
   `description_content` JSON NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -903,6 +862,7 @@ CREATE TABLE IF NOT EXISTS `pricing_descriptions` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_pricingdescriptions_UNIQUE` (`id` ASC),
   INDEX `fk_pricingdescriptions_pricings_idx` (`pricing_id` ASC),
+  UNIQUE INDEX `uuid_pricingdescriptions_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_pricingdescriptions_pricings`
     FOREIGN KEY (`pricing_id`)
     REFERENCES `pricings` (`id`)
@@ -916,6 +876,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `medals` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `medal_type` ENUM('elite', 'prestige', 'ultima') NOT NULL,
   `medal_color` VARCHAR(45) NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -925,7 +886,8 @@ CREATE TABLE IF NOT EXISTS `medals` (
   `updated_by` BIGINT NULL,
   `deleted_by` BIGINT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_medals_UNIQUE` (`id` ASC))
+  UNIQUE INDEX `id_medals_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `uuid_medals_UNIQUE` (`uuid` ASC))
 ENGINE = InnoDB;
 
 
@@ -960,6 +922,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `histories` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `word` TEXT NULL COMMENT 'This refers to a search history of a user',
   `entity` ENUM('clash', 'course', 'subject', 'user') NULL,
   `entity_id` BIGINT NULL,
@@ -971,6 +934,7 @@ CREATE TABLE IF NOT EXISTS `histories` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_histories_UNIQUE` (`id` ASC),
   INDEX `fk_histories_users_idx` (`user_id` ASC),
+  UNIQUE INDEX `uuid_histories_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_histories_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
@@ -1011,6 +975,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `reasons` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `reason_content` JSON NOT NULL,
   `entity` ENUM('clash', 'course', 'subject', 'question', 'user') NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1020,7 +985,8 @@ CREATE TABLE IF NOT EXISTS `reasons` (
   `updated_by` BIGINT NULL,
   `deleted_by` BIGINT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `idreasons_UNIQUE` (`id` ASC))
+  UNIQUE INDEX `id_reasons_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `uuid_reasons_UNIQUE` (`uuid` ASC))
 ENGINE = InnoDB;
 
 
@@ -1029,6 +995,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `reports` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `entity` ENUM('clash', 'course', 'subject', 'question', 'user') NULL,
   `entity_id` BIGINT NULL,
   `report_content` TEXT NULL,
@@ -1042,6 +1009,7 @@ CREATE TABLE IF NOT EXISTS `reports` (
   UNIQUE INDEX `id_reports_UNIQUE` (`id` ASC),
   INDEX `fk_reports_reasons_idx` (`reason_id` ASC),
   INDEX `fk_reports_users_idx` (`user_id` ASC),
+  UNIQUE INDEX `uuid_reports_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_reports_reasons`
     FOREIGN KEY (`reason_id`)
     REFERENCES `reasons` (`id`)
@@ -1127,6 +1095,7 @@ COMMENT = 'Some questions may require a single assertion, while others may requi
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `competences` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `competence_name` JSON NOT NULL,
   `competence_description` JSON NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1136,7 +1105,8 @@ CREATE TABLE IF NOT EXISTS `competences` (
   `updated_by` BIGINT NULL,
   `deleted_by` BIGINT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `idcompetences_UNIQUE` (`id` ASC))
+  UNIQUE INDEX `id_competences_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `uuid_competences_UNIQUE` (`uuid` ASC))
 ENGINE = InnoDB;
 
 
@@ -1145,6 +1115,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `recommendations` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `recommendation_content` LONGTEXT NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1157,6 +1128,7 @@ CREATE TABLE IF NOT EXISTS `recommendations` (
   INDEX `fk_recommendations_domains_idx` (`domain_id` ASC),
   INDEX `fk_recommendations_competences_idx` (`competence_id` ASC),
   INDEX `fk_recommendations_levels_idx` (`level_id` ASC),
+  UNIQUE INDEX `uuid_recommendations_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_recommendations_domains`
     FOREIGN KEY (`domain_id`)
     REFERENCES `domains` (`id`)
@@ -1234,57 +1206,6 @@ CREATE TABLE IF NOT EXISTS `circle_user` (
   CONSTRAINT `fk_circleuser_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `bank_cards`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `bank_cards` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT,
-  `card_name` VARCHAR(255) NULL,
-  `card_number` VARCHAR(45) NULL,
-  `expiration_date` VARCHAR(45) NULL,
-  `cvv_code` VARCHAR(45) NULL,
-  `provider` VARCHAR(45) NULL,
-  `is_main` TINYINT NOT NULL DEFAULT 0,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` TIMESTAMP NULL,
-  `user_id` BIGINT NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_bankcards_UNIQUE` (`id` ASC),
-  INDEX `fk_bankcards_users_idx` (`user_id` ASC),
-  CONSTRAINT `fk_bankcards_users`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `users` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `about_dashes`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `about_dashes` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT,
-  `dash_content` JSON NOT NULL,
-  `belongs_to` BIGINT NULL,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` TIMESTAMP NULL,
-  `created_by` BIGINT NULL,
-  `updated_by` BIGINT NULL,
-  `deleted_by` BIGINT NULL,
-  `about_content_id` BIGINT NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_aboutdashes_UNIQUE` (`id` ASC),
-  INDEX `fk_aboutdashes_aboutcontents_idx` (`about_content_id` ASC),
-  CONSTRAINT `fk_aboutdashes_aboutcontents`
-    FOREIGN KEY (`about_content_id`)
-    REFERENCES `about_contents` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
@@ -1532,6 +1453,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pollchoices` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `uuid` CHAR(36) NOT NULL,
   `choice_content` TEXT NOT NULL,
   `image_url` TEXT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1540,6 +1462,7 @@ CREATE TABLE IF NOT EXISTS `pollchoices` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_pollchoices_UNIQUE` (`id` ASC),
   INDEX `fk_pollchoices_messages_idx` (`message_id` ASC),
+  UNIQUE INDEX `uuid_pollchoices_UNIQUE` (`uuid` ASC),
   CONSTRAINT `fk_pollchoices_messages`
     FOREIGN KEY (`message_id`)
     REFERENCES `messages` (`id`)
@@ -1567,6 +1490,139 @@ CREATE TABLE IF NOT EXISTS `pollchoice_user` (
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `fk_pollchoiceuser_users`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ai_conversations`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ai_conversations` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(255) NOT NULL,
+  `assistant` VARCHAR(50) NOT NULL,
+  `system_prompt` LONGTEXT NULL,
+  `last_message_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` TIMESTAMP NULL,
+  `archived_at` TIMESTAMP NULL,
+  `user_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_aiconversations_UNIQUE` (`id` ASC),
+  INDEX `fk_aiconversations_users_idx` (`user_id` ASC),
+  CONSTRAINT `fk_aiconversations_users`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ai_messages`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ai_messages` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `role` ENUM('system', 'user', 'assistant', 'tool') NOT NULL,
+  `content` LONGTEXT NOT NULL,
+  `model` VARCHAR(100) NULL,
+  `prompt_tokens` INT UNSIGNED NULL,
+  `completion_tokens` INT UNSIGNED NULL,
+  `total_tokens` INT UNSIGNED NULL,
+  `response_time_ms` INT UNSIGNED NULL,
+  `error_message` TEXT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `conversation_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_aimessages_UNIQUE` (`id` ASC),
+  INDEX `fk_aimessages_aiconversations_idx` (`conversation_id` ASC),
+  CONSTRAINT `fk_aimessages_aiconversations`
+    FOREIGN KEY (`conversation_id`)
+    REFERENCES `ai_conversations` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ai_message_files`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ai_message_files` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `file_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_aimessagefiles_UNIQUE` (`id` ASC),
+  INDEX `fk_ai_message_files_files1_idx` (`file_id` ASC),
+  CONSTRAINT `fk_ai_message_files_files1`
+    FOREIGN KEY (`file_id`)
+    REFERENCES `files` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ai_tool_calls`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ai_tool_calls` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `tool_name` VARCHAR(100) NOT NULL,
+  `arguments` JSON NULL,
+  `response` JSON NULL,
+  `status` ENUM('pending', 'success', 'failed') NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ai_message_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_aitoolcalls_UNIQUE` (`id` ASC),
+  INDEX `fk_aitoolcalls_aimessages_idx` (`ai_message_id` ASC),
+  CONSTRAINT `fk_aitoolcalls_aimessages`
+    FOREIGN KEY (`ai_message_id`)
+    REFERENCES `ai_messages` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ai_settings`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ai_settings` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `provider` VARCHAR(50) NOT NULL,
+  `model` VARCHAR(100) NOT NULL,
+  `temperature` DECIMAL(3,2) NOT NULL,
+  `max_tokens` INT UNSIGNED NOT NULL,
+  `stream` TINYINT NOT NULL,
+  `enabled` TINYINT NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `idai_settings_UNIQUE` (`id` ASC))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `websites`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `websites` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `website_name` VARCHAR(255) NOT NULL,
+  `website_url` TEXT NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_websites_UNIQUE` (`id` ASC),
+  INDEX `fk_websites_users_idx` (`user_id` ASC),
+  CONSTRAINT `fk_websites_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
     ON DELETE CASCADE
