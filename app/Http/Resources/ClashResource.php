@@ -21,6 +21,8 @@ class ClashResource extends JsonResource
             'start_at' => $this->start_at,
             'end_at' => $this->end_at,
             'price' => $this->price,
+            'currency' => $this->currency,
+            'is_competition' => $this->is_competition,
             'type' => $this->type,
             'last_boost_at' => $this->last_boost_at,
             'boost_type' => $this->boost_type,

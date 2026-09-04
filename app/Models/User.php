@@ -6,19 +6,28 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
-#[Fillable(['firstname', 'lastname', 'surname', 'organization_name', 'gender', 'birthdate', 'country', 'city', 'address_1', 'address_2', 'p_o_box', 'currency', 'email', 'phone', 'email_verified_at', 'phone_verfied_at', 'username', 'password', 'api_token', 'api_key', 'avatar_url', 'cover_url', 'belongs_to', 'promo_code', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_email_confirmed_at', 'two_factor_phone_confirmed_at', 'tips_at_every_login', 'is_online', 'status', 'type', 'name'])]
+#[Fillable(['uuid', 'name', 'firstname', 'lastname', 'surname', 'organization_name', 'about', 'gender', 'birthdate', 'country', 'city', 'address_1', 'address_2', 'p_o_box', 'currency', 'email', 'phone', 'email_verified_at', 'phone_verfied_at', 'username', 'password', 'api_token', 'api_key', 'avatar_url', 'cover_url', 'promo_code', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_email_confirmed_at', 'two_factor_phone_confirmed_at', 'tips_at_every_login', 'is_online', 'status'])]
 #[Hidden(['password', 'remember_token', 'api_token', 'api_key', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $user): void {
+            if (blank($user->uuid)) {
+                $user->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -38,19 +47,8 @@ class User extends Authenticatable
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
-            'belongs_to' => 'integer',
             'password' => 'hashed',
         ];
-    }
-
-    public function owner(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'belongs_to');
-    }
-
-    public function subAccounts(): HasMany
-    {
-        return $this->hasMany(User::class, 'belongs_to');
     }
 
     public function roles(): BelongsToMany
@@ -149,7 +147,8 @@ class User extends Authenticatable
     public function medals(): BelongsToMany
     {
         return $this->belongsToMany(Medal::class, 'medal_user')
-            ->withPivot('id')
+            ->using(MedalUser::class)
+            ->withPivot('id', 'clash_id')
             ->withTimestamps();
     }
 
@@ -187,11 +186,6 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function bankCards(): HasMany
-    {
-        return $this->hasMany(BankCard::class, 'user_id');
-    }
-
     public function accountSwitches(): HasMany
     {
         return $this->hasMany(AccountSwitch::class, 'from_user_id');
@@ -200,5 +194,15 @@ class User extends Authenticatable
     public function accountSwitchesByToUser(): HasMany
     {
         return $this->hasMany(AccountSwitch::class, 'to_user_id');
+    }
+
+    public function websites(): HasMany
+    {
+        return $this->hasMany(Website::class);
+    }
+
+    public function aiConversations(): HasMany
+    {
+        return $this->hasMany(AI\AiConversation::class);
     }
 }

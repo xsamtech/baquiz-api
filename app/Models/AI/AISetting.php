@@ -2,24 +2,24 @@
 
 namespace App\Models\AI;
 
-use App\Models\SqlModel;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 
-class AISetting extends SqlModel
+#[Fillable(['provider', 'model', 'temperature', 'max_tokens', 'stream', 'enabled'])]
+class AISetting extends Model
 {
-    protected function tableName(): string
-    {
-        return 'ai_settings';
-    }
+    protected $table = 'ai_settings';
 
     /**
      * @return array<string, string>
      */
-    protected function castsAttributes(): array
+    protected function casts(): array
     {
         return [
             'temperature' => 'float',
             'stream' => 'boolean',
-            'enabled' => 'boolean'
+            'enabled' => 'boolean',
+            'max_tokens' => 'integer',
         ];
     }
 }

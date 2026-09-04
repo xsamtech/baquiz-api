@@ -15,20 +15,20 @@ class BlockedUserController extends ApiController
 
     protected array $relationships = [
         'user',
-        'aboutTitle',
+        'reason',
     ];
 
     protected array $storeRules = [
         'complaint' => ['sometimes', 'nullable', 'string'],
         'is_unlocked' => ['sometimes', 'nullable', 'boolean'],
         'user_id' => ['required', 'integer'],
-        'about_title_id' => ['sometimes', 'nullable', 'integer'],
+        'reason_uuid' => ['required', 'uuid', 'exists:reasons,uuid'],
     ];
 
     protected array $updateRules = [
         'complaint' => ['sometimes', 'nullable', 'string'],
         'is_unlocked' => ['sometimes', 'nullable', 'boolean'],
         'user_id' => ['sometimes', 'integer'],
-        'about_title_id' => ['sometimes', 'nullable', 'integer'],
+        'reason_uuid' => ['sometimes', 'uuid', 'exists:reasons,uuid'],
     ];
 }

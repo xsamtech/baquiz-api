@@ -10,7 +10,7 @@ use Spatie\Translatable\Attributes\Translatable;
 use Spatie\Translatable\HasTranslations;
 
 #[Translatable('reason_content')]
-#[Fillable(['reason_content', 'entity', 'created_by', 'updated_by', 'deleted_by'])]
+#[Fillable(['uuid', 'reason_content', 'max_reports', 'entity', 'created_by', 'updated_by', 'deleted_by'])]
 class Reason extends Model
 {
     use HasTranslations, SoftDeletes;
@@ -29,6 +29,7 @@ class Reason extends Model
             'created_by' => 'integer',
             'updated_by' => 'integer',
             'deleted_by' => 'integer',
+            'max_reports' => 'integer',
         ];
     }
 

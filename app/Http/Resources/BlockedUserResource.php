@@ -16,15 +16,16 @@ class BlockedUserResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'uuid' => $this->uuid,
             'complaint' => $this->complaint,
             'is_unlocked' => $this->is_unlocked,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
             'user_id' => $this->user_id,
-            'about_title_id' => $this->about_title_id,
+            'reason_uuid' => $this->reason_uuid,
             'user' => new UserResource($this->whenLoaded('user')),
-            'aboutTitle' => new AboutTitleResource($this->whenLoaded('aboutTitle')),
+            'reason' => new ReasonResource($this->whenLoaded('reason')),
         ];
     }
 }

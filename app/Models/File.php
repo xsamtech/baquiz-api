@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['file_name', 'file_url', 'file_description', 'file_type', 'question_id', 'assertion_id', 'answer_id', 'clash_id', 'user_id', 'subject_id', 'field_id', 'comment_id', 'domain_id', 'message_id'])]
+#[Fillable(['file_name', 'file_url', 'file_description', 'file_type', 'mime_type', 'file_size', 'width', 'height', 'duration', 'question_id', 'assertion_id', 'answer_id', 'clash_id', 'user_id', 'subject_id', 'field_id', 'comment_id', 'domain_id', 'message_id'])]
 class File extends Model
 {
     use SoftDeletes;
@@ -33,6 +33,10 @@ class File extends Model
             'comment_id' => 'integer',
             'domain_id' => 'integer',
             'message_id' => 'integer',
+            'file_size' => 'integer',
+            'width' => 'integer',
+            'height' => 'integer',
+            'duration' => 'integer',
         ];
     }
 

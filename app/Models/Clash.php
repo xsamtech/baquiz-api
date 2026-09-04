@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['clash_code', 'clash_description', 'start_at', 'end_at', 'price', 'type', 'last_boost_at', 'boost_type', 'field_id', 'user_id'])]
+#[Fillable(['uuid', 'clash_code', 'clash_description', 'start_at', 'end_at', 'price', 'currency', 'is_competition', 'type', 'last_boost_at', 'boost_type', 'field_id', 'user_id'])]
 class Clash extends Model
 {
     use SoftDeletes;
@@ -27,6 +27,7 @@ class Clash extends Model
             'start_at' => 'datetime',
             'end_at' => 'datetime',
             'price' => 'decimal:2',
+            'is_competition' => 'boolean',
             'last_boost_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
@@ -77,6 +78,14 @@ class Clash extends Model
     {
         return $this->belongsToMany(Hashtag::class, 'hashtag_clash', 'clash_id', 'hashtag_id')
             ->withPivot('id')
+            ->withTimestamps();
+    }
+
+    public function medals(): BelongsToMany
+    {
+        return $this->belongsToMany(Medal::class, 'medal_user')
+            ->using(MedalUser::class)
+            ->withPivot('id', 'user_id')
             ->withTimestamps();
     }
 }

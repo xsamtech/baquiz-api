@@ -16,7 +16,9 @@ class ReasonResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'uuid' => $this->uuid,
             'reason_content' => $this->reason_content,
+            'max_reports' => $this->max_reports,
             'reason_content_translations' => $this->getTranslations('reason_content'),
             'entity' => $this->entity,
             'created_at' => $this->created_at,

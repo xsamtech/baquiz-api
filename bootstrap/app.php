@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsurePlatformRoles;
 use App\Http\Middleware\SetLocaleFromHeader;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(prepend: [
+            EnsurePlatformRoles::class,
+        ]);
         $middleware->api(prepend: [
             SetLocaleFromHeader::class,
         ]);

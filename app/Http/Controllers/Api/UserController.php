@@ -40,6 +40,7 @@ class UserController extends ApiController
         'lastname' => ['sometimes', 'nullable', 'string'],
         'surname' => ['sometimes', 'nullable', 'string'],
         'organization_name' => ['sometimes', 'nullable', 'string'],
+        'about' => ['sometimes', 'nullable', 'string'],
         'gender' => ['sometimes', 'nullable', 'string'],
         'birthdate' => ['sometimes', 'nullable', 'date'],
         'country' => ['sometimes', 'nullable', 'string'],
@@ -56,7 +57,6 @@ class UserController extends ApiController
         'api_key' => ['sometimes', 'nullable', 'string'],
         'avatar_url' => ['sometimes', 'nullable', 'string'],
         'cover_url' => ['sometimes', 'nullable', 'string'],
-        'belongs_to' => ['sometimes', 'nullable', 'integer'],
         'promo_code' => ['sometimes', 'nullable', 'string'],
         'two_factor_secret' => ['sometimes', 'nullable', 'string'],
         'two_factor_recovery_codes' => ['sometimes', 'nullable', 'string'],
@@ -73,6 +73,7 @@ class UserController extends ApiController
         'lastname' => ['sometimes', 'nullable', 'string'],
         'surname' => ['sometimes', 'nullable', 'string'],
         'organization_name' => ['sometimes', 'nullable', 'string'],
+        'about' => ['sometimes', 'nullable', 'string'],
         'gender' => ['sometimes', 'nullable', 'string'],
         'birthdate' => ['sometimes', 'nullable', 'date'],
         'country' => ['sometimes', 'nullable', 'string'],
@@ -89,7 +90,6 @@ class UserController extends ApiController
         'api_key' => ['sometimes', 'nullable', 'string'],
         'avatar_url' => ['sometimes', 'nullable', 'string'],
         'cover_url' => ['sometimes', 'nullable', 'string'],
-        'belongs_to' => ['sometimes', 'nullable', 'integer'],
         'promo_code' => ['sometimes', 'nullable', 'string'],
         'two_factor_secret' => ['sometimes', 'nullable', 'string'],
         'two_factor_recovery_codes' => ['sometimes', 'nullable', 'string'],
@@ -111,6 +111,7 @@ class UserController extends ApiController
         ]);
 
         unset($data['confirm_password']);
+        $data['uuid'] = (string) Str::uuid();
         $data['api_key'] = Str::random(80);
 
         if (isset($data['avatar'])) {
@@ -126,6 +127,7 @@ class UserController extends ApiController
             ]);
             Notification::query()->create([
                 'type' => 'welcome_new_user',
+                'is_read' => false,
                 'to_user_id' => $user->id,
             ]);
 
@@ -322,7 +324,7 @@ class UserController extends ApiController
             PasswordReset::query()->create([
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'token' => Str::upper(Str::random(6)),
+                'token' => (string) random_int(100000, 999999),
                 'former_password' => null,
             ]),
         ]);

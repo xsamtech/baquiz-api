@@ -17,6 +17,7 @@ class ReasonController extends ApiController
 
     protected array $storeRules = [
         'reason_content' => ['required', 'array'],
+        'max_reports' => ['sometimes', 'nullable', 'integer', 'min:1'],
         'entity' => ['required', 'in:clash, course, subject, question, user'],
         'created_by' => ['sometimes', 'nullable', 'integer'],
         'updated_by' => ['sometimes', 'nullable', 'integer'],
@@ -25,6 +26,7 @@ class ReasonController extends ApiController
 
     protected array $updateRules = [
         'reason_content' => ['sometimes', 'array'],
+        'max_reports' => ['sometimes', 'nullable', 'integer', 'min:1'],
         'entity' => ['sometimes', 'in:clash, course, subject, question, user'],
         'created_by' => ['sometimes', 'nullable', 'integer'],
         'updated_by' => ['sometimes', 'nullable', 'integer'],

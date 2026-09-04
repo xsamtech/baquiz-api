@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['complaint', 'is_unlocked', 'user_id', 'about_title_id'])]
+#[Fillable(['uuid', 'complaint', 'is_unlocked', 'reason_uuid', 'user_id'])]
 class BlockedUser extends Model
 {
     use SoftDeletes;
@@ -25,7 +25,6 @@ class BlockedUser extends Model
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
             'user_id' => 'integer',
-            'about_title_id' => 'integer',
         ];
     }
 
@@ -34,8 +33,8 @@ class BlockedUser extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function aboutTitle(): BelongsTo
+    public function reason(): BelongsTo
     {
-        return $this->belongsTo(AboutTitle::class, 'about_title_id');
+        return $this->belongsTo(Reason::class, 'reason_uuid', 'uuid');
     }
 }

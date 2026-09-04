@@ -2,23 +2,20 @@
 
 namespace App\Models\AI;
 
-use App\Models\File;
-use App\Models\SqlModel;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class AiMessage extends SqlModel
+#[Fillable(['role', 'content', 'model', 'prompt_tokens', 'completion_tokens', 'total_tokens', 'response_time_ms', 'error_message', 'conversation_id'])]
+class AiMessage extends Model
 {
-    protected function tableName(): string
-    {
-        return 'ai_messages';
-    }
+    protected $table = 'ai_messages';
 
     /**
      * @return array<string, string>
      */
-    protected function castsAttributes(): array
+    protected function casts(): array
     {
         return [
             'prompt_tokens' => 'integer',
@@ -31,16 +28,6 @@ class AiMessage extends SqlModel
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(AiConversation::class, 'conversation_id');
-    }
-
-    public function messageFiles(): HasMany
-    {
-        return $this->hasMany(AiMessageFile::class, 'ai_message_id');
-    }
-
-    public function files(): BelongsToMany
-    {
-        return $this->belongsToMany(File::class, 'ai_message_files', 'ai_message_id', 'file_id')->withTimestamps();
     }
 
     public function toolCalls(): HasMany

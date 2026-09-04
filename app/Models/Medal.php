@@ -32,7 +32,8 @@ class Medal extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'medal_user')
-            ->withPivot('id')
+            ->using(MedalUser::class)
+            ->withPivot('id', 'clash_id')
             ->withTimestamps();
     }
 }

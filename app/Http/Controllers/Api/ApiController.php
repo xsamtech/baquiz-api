@@ -34,7 +34,7 @@ abstract class ApiController extends BaseController
         $records = $this->modelClass::query()
             ->with($this->relationships)
             ->latest('id')
-            ->paginate(20);
+            ->paginate(10);
 
         return $this->handleResponse(
             $this->resourceClass::collection($records),

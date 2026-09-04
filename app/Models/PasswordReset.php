@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable(['email', 'phone', 'token', 'former_password'])]
 class PasswordReset extends Model
 {
+    protected $table = 'password_reset_tokens';
+
     /**
      * Get the attributes that should be cast.
      *

@@ -2,20 +2,19 @@
 
 namespace App\Models\AI;
 
-use App\Models\SqlModel;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AiToolCall extends SqlModel
+#[Fillable(['tool_name', 'arguments', 'response', 'status', 'ai_message_id'])]
+class AiToolCall extends Model
 {
-    protected function tableName(): string
-    {
-        return 'ai_tool_calls';
-    }
+    protected $table = 'ai_tool_calls';
 
     /**
      * @return array<string, string>
      */
-    protected function castsAttributes(): array
+    protected function casts(): array
     {
         return [
             'arguments' => 'array',

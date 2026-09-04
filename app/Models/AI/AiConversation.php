@@ -2,25 +2,24 @@
 
 namespace App\Models\AI;
 
-use App\Models\SqlModel;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AiConversation extends SqlModel
+#[Fillable(['title', 'assistant', 'system_prompt', 'last_message_at', 'archived_at', 'user_id'])]
+class AiConversation extends Model
 {
     use SoftDeletes;
 
-    protected function tableName(): string
-    {
-        return 'ai_conversations';
-    }
+    protected $table = 'ai_conversations';
 
     /**
      * @return array<string, string>
      */
-    protected function castsAttributes(): array
+    protected function casts(): array
     {
         return [
             'last_message_at' => 'datetime',

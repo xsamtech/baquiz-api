@@ -6,11 +6,21 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
-#[Fillable(['type', 'is_read', 'from_user_id', 'to_user_id', 'clash_id', 'comment_id', 'message_id', 'question_id', 'assertion_id', 'answer_id'])]
+#[Fillable(['uuid', 'type', 'is_read', 'from_user_id', 'to_user_id', 'clash_id', 'comment_id', 'message_id', 'question_id', 'assertion_id', 'answer_id'])]
 class Notification extends Model
 {
     use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $notification): void {
+            if (blank($notification->uuid)) {
+                $notification->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.

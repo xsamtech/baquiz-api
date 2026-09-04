@@ -18,6 +18,7 @@ class MedalResource extends JsonResource
             'id' => $this->id,
             'medal_type' => $this->medal_type,
             'medal_color' => $this->medal_color,
+            'clash_id' => $this->whenPivotLoaded('medal_user', fn (): mixed => $this->pivot->clash_id),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,

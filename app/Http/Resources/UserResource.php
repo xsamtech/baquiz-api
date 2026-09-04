@@ -16,10 +16,12 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'uuid' => $this->uuid,
             'firstname' => $this->firstname,
             'lastname' => $this->lastname,
             'surname' => $this->surname,
             'organization_name' => $this->organization_name,
+            'about' => $this->about,
             'gender' => $this->gender,
             'birthdate' => $this->birthdate,
             'country' => $this->country,
@@ -36,7 +38,6 @@ class UserResource extends JsonResource
             'api_key' => $this->api_key,
             'avatar_url' => $this->avatar_url,
             'cover_url' => $this->cover_url,
-            'belongs_to' => $this->belongs_to,
             'promo_code' => $this->promo_code,
             'two_factor_email_confirmed_at' => $this->two_factor_email_confirmed_at,
             'two_factor_phone_confirmed_at' => $this->two_factor_phone_confirmed_at,
@@ -47,7 +48,6 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
-            'owner' => new UserResource($this->whenLoaded('owner')),
             'roles' => RoleResource::collection($this->whenLoaded('roles')),
             'histories' => HistoryResource::collection($this->whenLoaded('histories')),
             'medals' => MedalResource::collection($this->whenLoaded('medals')),
