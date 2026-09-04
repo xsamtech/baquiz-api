@@ -59,6 +59,7 @@ Route::patch('clashs/{clashId}/react/{userId}', [ClashController::class, 'reactT
 Route::patch('clashs/{clashId}/participate/{userId}', [ClashController::class, 'participate']);
 Route::post('password-resets/find-user', [PasswordResetController::class, 'findUser']);
 Route::post('password-resets/check-token', [PasswordResetController::class, 'checkToken']);
+Route::post('payments/flexpay/{reference}/callback', [PaymentController::class, 'flexPayCallback']);
 Route::post('questions/{id}/files', [QuestionController::class, 'addFiles']);
 Route::post('assertions/{id}/files', [AssertionController::class, 'addFiles']);
 Route::post('answers/{id}/files', [AnswerController::class, 'addFiles']);

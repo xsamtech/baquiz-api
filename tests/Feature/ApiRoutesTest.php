@@ -35,6 +35,11 @@ class ApiRoutesTest extends TestCase
             '--path' => 'api/users/1/restore',
             '--except-vendor' => true,
         ])->assertSuccessful();
+
+        $this->artisan('route:list', [
+            '--path' => 'api/payments/flexpay/reference/callback',
+            '--except-vendor' => true,
+        ])->assertSuccessful();
     }
 
     public function test_api_translation_messages_are_available(): void

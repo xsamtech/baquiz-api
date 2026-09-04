@@ -38,9 +38,8 @@ Et pour le favicon (public/assets/img/favicon), 👉 à moins qu'il y ait un aut
 
 Pour le reste des pages, tu as le document PDF que j'ai joint pour y voir les informations dont tu as besoin. Essaie de générer les pages ergonomiques ; et mettre un ajax-loader quand on lance une requête.
 
-
-
 =====================================
+
 1️⃣ J'ai ajouté la colonne "is_competition" et la clé étrangère comme colonne de la table pivot "medal_user". De ce fait, tu peux compléter au niveau des modèles, contrôleurs et autres.
 
 2️⃣ Concernant l'inscription, j'ai oublié la table "notifications" qui doit aussi être remplie avec les valeurs :
@@ -89,3 +88,37 @@ En fait, quand tu appelles les notifications depuis la table des notifications, 
     - Le graphique où il y a "Target you've set for each month" peut servir pour faire un graphique pour les paiements, avec 3 références selon la colonne "status" : En cours (2), Réussi (0), Échoué (1)
     - Juste en dessous de ce graphique, tu mets un tableau des paiements (tenir compte du template pour le design ; et de la table "payments").
 - Pour les autres pages, tu mets le tableau des données et leurs formulaires selon le document "admin-workflow.docx" que je t'avais joint au début.
+
+=====================================
+
+Tu peux générer une méthode principale qui sera utilisée par toutes les APIs qui demandent d'effectuer un paiement. La prochaine fois que je te dirai de créer une méthode dans le projet qui va lancer une transaction de paiement, tu vas simplement appelé cette méthode principale dans la méthode que tu crées, avec les paramètrres qu'il faut.
+Et cette méthode principale, qui sera dans le contrôleur "app/Http/Controllers/Api/ApiController.php" (je te laisse lui donner un nom), dépend de la table "payments" et utilise le service "FlexPay".
+
+=========
+Tout d'abord "FlexPay" demande d'envoyer une requête avec :
+=========
+- Header
+    - "authorization" (Le token d'autorisation obligatoire que le service envoie) : "'Bearer ' . config('services.flexpay.api_token')".
+- Body
+    - "merchant" (Le code Marchand FlexPay) : Appelé via le "config('services.flexpay.merchant')" ;
+    - "type" (Le type de la transaction) : "1" si c'est mobile mone ; et "2" si c'est carte bancaire ;
+    - "reference" (La référence de la transaction) : Générer un code du genre "REF-{8_digits_random_code}-{user_id}" ;
+    - "phone" (Le n° de téléphone du client qui paie) : "Exemple : 243xxxxxxxxx" ; obligatoire quand la transaction est en mobile money (type = 1) ;
+    - "amount" (Le montant de la transaction) ;
+    - "currency" (La devise de la transaction) : USD ou CDF ;
+    - "description" (La description de la transaction) : Surtout utilisé quand la transaction est bancaire (type = 2) ;
+    - "callbackUrl" pour mobile money, et "callback_url" pour carte bancaire (L'url de retour ou le résultat de la transaction sera envoyé) : Ce résultat de la transaction est l'ensemble des données à envoyer en temps réel (Par exemple, un endpoint d'une API locale) à la table "payments". Les données importantes sont par exemple l'état de la transaction (colonne `payments`.`status`) ;
+    - "approve_url" (L'url de redirection si l'opération est approuvée) : Utilisé pour la transaction par carte bancaire (type = 2). C'est "FlexPay" qui s'occupe de la redirection.
+    - "cancel_url" (L'url de redirection si l'opération a été annulée par le client ; en cliquant sur le bouton annuler) : Utilisé pour la transaction par carte bancaire (type = 2). C'est "FlexPay" qui s'occupe de la redirection.
+    - "decline_url" (L'url de redirection si l'opération est approuvée) : Utilisé pour la transaction par carte bancaire (type = 2). C'est "FlexPay" qui s'occupe de la redirection.
+
+=========
+Ensuite "FlexPay" renvoie une réponse :
+=========
+- "code" : Ce code donne le statut de la requête envoyée ("0" pour la requête bien envoyée, et "1" en cas de problème).
+- "reference" : La référence envoyée lors dans la requête. Renvoyé par FlexPay uniquement lorsque le type de transaction est "carte bancaire" (type = 2).
+- "provider_reference" : La référence de la transaction de l’opérateur en cas de succès. Renvoyé par FlexPay uniquement lorsque le type de transaction est "carte bancaire" (type = 2).
+- "message" : Ce message est la description de la réponse (Exemple : Transaction envoyée avec succès. Veuillez valider le push message sur votre téléphone) ;
+- "orderNumber" : Le code de la transaction généré par FlexPay. Très utile pour rechercher des paiements dans l'application.
+
+Je t'ai joint un exemple complet (purchase-sample.txt) d'ancienne méthode où j'ai utilisé FlexPay dans une application E-commerce.

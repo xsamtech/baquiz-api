@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Lang;
 
 class PaymentController extends ApiController
 {
@@ -50,4 +54,15 @@ class PaymentController extends ApiController
         'entity_id' => ['sometimes', 'nullable', 'integer'],
         'user_id' => ['sometimes', 'nullable', 'integer'],
     ];
+
+    public function flexPayCallback(Request $request, string $reference): JsonResponse
+    {
+        $payment = $this->handleFlexPayCallback($reference, $request->all());
+
+        if (! $payment) {
+            return $this->handleError(null, Lang::get('api.payments.not_found'), Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->handleResponse(new PaymentResource($payment), 'FlexPay callback received.');
+    }
 }
