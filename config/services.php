@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    'flexpay' => [
+        'merchant' => env('FLEXPAY_MERCHANT'),
+        'gateway_mobile' => env('FLEXPAY_GATEWAY_MOBILE'),
+        'gateway_card_v1' => env('FLEXPAY_GATEWAY_CARD_V1'),
+        'gateway_card_v2' => env('FLEXPAY_GATEWAY_CARD_V2'),
+        'gateway_check' => env('FLEXPAY_GATEWAY_CHECK'),
+        'api_token' => env('FLEXPAY_API_TOKEN'),
+    ],
+
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL'),
+        'max_tokens' => env('OPENAI_MAX_TOKENS'),
+        'temperature' => env('OPENAI_TEMPERATURE'),
+    ],
+
 ];
