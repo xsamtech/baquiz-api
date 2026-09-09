@@ -15,6 +15,7 @@ Route::get('/dashboard', fn () => redirect()->route('dashboard'));
 Route::middleware(['auth', 'verified'])->prefix('admin')->group(function (): void {
     Route::get('dashboard-data', [AdminController::class, 'dashboard'])->name('admin.dashboard-data');
     Route::get('notifications', [AdminController::class, 'notifications'])->name('admin.notifications');
+    Route::get('account', [AdminController::class, 'account'])->name('admin.account');
     Route::get('search', [AdminController::class, 'search'])->name('admin.search');
 });
 

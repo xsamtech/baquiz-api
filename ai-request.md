@@ -122,3 +122,42 @@ Ensuite "FlexPay" renvoie une réponse :
 - "orderNumber" : Le code de la transaction généré par FlexPay. Très utile pour rechercher des paiements dans l'application.
 
 Je t'ai joint un exemple complet (purchase-sample.txt) d'ancienne méthode où j'ai utilisé FlexPay dans une application E-commerce.
+
+=====================================
+
+1️⃣ Apparemment, il y a des icônes qui ne concordent pas. Pour toutes les icônes du site, tu peux utiliser "bootstrap-icons" et/ou "font-awesome". Ce qui te permettra d'avoir des icônes appropriées pour le bouton "toggle theme Dark/Light", le lien du menu de navigation, les blocs des statistiques sur le tableau de bord, ou autres parties du site.
+👉 Pour la barre de menu, je t'ai joint une image (menu.png) de la disposition de la dimension des icônes et de la police
+
+2️⃣ En cliquant pour passer à une page, inutile de mettre un "ajax-loader" et de recharger toute la page. Tu dois plutôt utiliser les placeholders sur la partie "contenu" (seul endroit qui recharge de manière asynchone) comme sur les réseaux sociaux.
+👉 Je t'ai joint une image ("placeholder-light.png" et "placeholder-dark.png") comme modèle. Car tu devras générer ça entant que code pour que ça respecte le lien, mais aussi le thème "Dark/Light" ; c'est-à-dire :
+- les blocs du placeholder du tableau de bord ont leur disposition ;
+- les blocs du placeholder du profil (/account) ont leur disposition (presque comme sur l'image que je t'ai jointe) ;
+- les blocs du placeholder des notifications ont leur disposition.
+Bref, chaque placeholder prépare l'utilisateur à voir du contenu avec la disposition des blocs presque telle qu'il les voit.
+
+3️⃣ Le bouton pour retrecir la barre de menu, lorsqu'on est sur les petits écrans doit servir pour faire apparaitre (icône devient "<i class="bi bi-x"></i>") ou disparaitre (icône redevient "<i class="bi bi-list"></i>" icône par défaut) la barre de menu.
+
+4️⃣ Quand on clique sur le bouton qui retrecit la barre de menu :
+- il n'y a plus de "/assets/img/logo/logo-dark.svg", ni de "/assets/img/logo/logo.svg", parce que ce sont des logos avec textes. Ils sont remplacés par un simple logo "/assets/img/logo/logo-icon.svg".
+- en posant le curseur sur la barre menu, celui-ci s'agrandit ; et en enlevant le curseur sans cliquer, il se retrecit à nouveau. Ne pas oublier de switcher entre les logos pendant l'agrandissement/le retrecissement.
+
+5️⃣ La barre de recherche doit déjà afficher le bloc autocomplete avec les résultats regroupés (un bon design) :
+- Utilisateurs (table "users")
+- Clashs (table "clashs")
+- Champs (table "fields")
+
+Quand il n'y a encore rien, il doit y avoir le message "Liste vide".
+Sur le plus petit écran (téléphone), une icône de recherche simple apparait. Quand on clique sur cette icône, un pop-up avec barre de recherche apparait (comme sur le site de la documentation officiel de Laravel ou sur Freepik/Magnific, ou autre).
+
+6️⃣ J'ai joint l'image de la page de la gestion du compte (profile.png) pour que tu remplisses déjà la page "account" ; en sachant que la partie où il y a :
+- "Team Manager", tu mets le rôle principal (colonne `role_user`.`is_selected`) ;
+- "Arizona, United States", tu mets la ville (colonne `users`.`city`) et le pays (colonne `users`.`country`) ;
+- "Les icônes des réseaux sociaux (voir la table `websites`)". J'ai ajouté la colonne "logo_icon" que tu dois aussi ajouter dans les modèles et autres endroits appropriés.
+
+Les contenus doivent toujours respecter (même à l'avenir) ceci :
+- Toujours en 2 langues (Français & English) ;
+- Chaque contenu de notification (texte que tu génères selon les données de la table) doit être accompagné d'une image (la photo de l'utilisateur de la colonne `notifications`.`from_user_id` ou une image par défaut si cette colonne est vide ou cet utilisateur n'a pas mis d'avatar). Tu dois d'ailleurs déjà remplir la page des notifications, vu que son contenu est comme sur le Dropdown des notifications depuis l'icône sur la barre en haut ;
+- Tout Dropdown, dans le site, doit se fermer quand on clique ailleurs sur la page.
+
+=====================================
+

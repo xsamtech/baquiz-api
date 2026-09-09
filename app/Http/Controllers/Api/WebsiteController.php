@@ -18,12 +18,14 @@ class WebsiteController extends ApiController
     protected array $storeRules = [
         'website_name' => ['required', 'string', 'max:255'],
         'website_url' => ['required', 'url'],
+        'logo_icon' => ['sometimes', 'nullable', 'string', 'max:255'],
         'user_id' => ['required', 'integer', 'exists:users,id'],
     ];
 
     protected array $updateRules = [
         'website_name' => ['sometimes', 'string', 'max:255'],
         'website_url' => ['sometimes', 'url'],
+        'logo_icon' => ['sometimes', 'nullable', 'string', 'max:255'],
         'user_id' => ['sometimes', 'integer', 'exists:users,id'],
     ];
 }

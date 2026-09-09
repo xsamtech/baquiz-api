@@ -16,6 +16,7 @@ class WebsiteResource extends JsonResource
             'id' => $this->id,
             'website_name' => $this->website_name,
             'website_url' => $this->website_url,
+            'logo_icon' => $this->logo_icon,
             'user_id' => $this->user_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\NotificationResource;
 use App\Models\Clash;
-use App\Models\Competence;
-use App\Models\Domain;
 use App\Models\Field;
 use App\Models\Notification;
 use App\Models\Payment;
-use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,6 +56,21 @@ class AdminController extends Controller
         return NotificationResource::collection($notifications)->response();
     }
 
+    public function account(Request $request): JsonResponse
+    {
+        $user = $request->user()->load([
+            'roles' => fn ($query) => $query->select(['roles.id', 'role_name']),
+            'websites:id,website_name,website_url,logo_icon,user_id',
+        ]);
+        $selectedRole = $user->roles->firstWhere('pivot.is_selected', true) ?? $user->roles->first();
+
+        return response()->json([
+            'user' => $user->only(['id', 'uuid', 'firstname', 'lastname', 'surname', 'email', 'username', 'phone', 'avatar_url', 'cover_url', 'about', 'city', 'country']),
+            'role' => $selectedRole?->getTranslations('role_name'),
+            'websites' => $user->websites,
+        ]);
+    }
+
     public function search(Request $request): JsonResponse
     {
         $data = $request->validate(['q' => ['required', 'string', 'min:2', 'max:100']]);
@@ -66,10 +78,8 @@ class AdminController extends Controller
 
         return response()->json([
             'users' => User::query()->select(['id', 'uuid', 'firstname', 'lastname', 'username', 'avatar_url'])->where(fn ($query) => $query->where('firstname', 'like', $term)->orWhere('lastname', 'like', $term)->orWhere('username', 'like', $term))->limit(5)->get(),
-            'subjects' => Subject::query()->select(['id', 'uuid', 'subject_name'])->where('subject_name', 'like', $term)->limit(5)->get(),
-            'domains' => Domain::query()->select(['id', 'uuid', 'domain_name'])->where('domain_name', 'like', $term)->limit(5)->get(),
-            'fields' => Field::query()->select(['id', 'uuid', 'field_name'])->where('field_name', 'like', $term)->limit(5)->get(),
-            'competences' => Competence::query()->select(['id', 'uuid', 'competence_name'])->where('competence_name', 'like', $term)->limit(5)->get(),
+            'clashs' => Clash::query()->select(['id', 'uuid', 'clash_code', 'clash_description'])->where(fn ($query) => $query->where('clash_code', 'like', $term)->orWhere('clash_description', 'like', $term))->limit(5)->get(),
+            'fields' => Field::query()->select(['id', 'uuid', 'field_name'])->where('field_name->fr', 'like', $term)->limit(5)->get(),
         ]);
     }
 
