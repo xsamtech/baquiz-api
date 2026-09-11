@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@media (min-width: 1024px) {
+    .admin-copyright {
+        margin-left: 290px;
+    }
+}
+
+#admin aside > a[href="/"] {
+    justify-content: flex-start;
+}
+
+#admin aside.w-\[84px\] > a[href="/"] img[src$="/logo.svg"],
+#admin aside.w-\[84px\] > a[href="/"] img[src$="/logo-dark.svg"] {
+    display: none !important;
+}
+
+#admin aside.w-\[84px\] > a[href="/"] img[src$="/logo-icon.svg"] {
+    display: block !important;
+}
+
+#admin .mx-auto.max-w-5xl > .overflow-hidden > .h-36 {
+    display: none;
+}
+
+#admin .mx-auto.max-w-5xl .-mt-14 {
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 1023px) {
+    #admin header.sticky.top-0 {
+        z-index: 60;
+    }
+
+    #admin aside.fixed.inset-y-0.left-0 {
+        padding-top: 84px;
+    }
+}

@@ -18,6 +18,7 @@ return [
         'invalid_former_password' => 'L ancien mot de passe est invalide.',
         'type_changed' => 'Type de l utilisateur modifié avec succès.',
         'avatar_changed' => 'Avatar de l utilisateur modifié avec succès.',
+        'cover_changed' => 'Couverture de l utilisateur modifiée avec succès.',
         'with_histories' => 'Utilisateurs avec historiques récupérés avec succès.',
         'with_medals' => 'Utilisateurs avec médailles récupérés avec succès.',
     ],

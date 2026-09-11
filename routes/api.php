@@ -51,6 +51,7 @@ Route::patch('users/{id}/status', [UserController::class, 'changeStatus']);
 Route::patch('users/{id}/password', [UserController::class, 'changePassword']);
 Route::patch('users/{id}/type', [UserController::class, 'changeType']);
 Route::post('users/{id}/avatar', [UserController::class, 'updateAvatar']);
+Route::post('users/{id}/cover', [UserController::class, 'updateCover']);
 Route::post('users/{id}/files', [UserController::class, 'addFiles']);
 Route::post('users/{id}/restore', [UserController::class, 'restore']);
 Route::get('clashs/news-feed/{userId}', [ClashController::class, 'newsFeed']);

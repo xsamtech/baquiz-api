@@ -18,6 +18,7 @@ return [
         'invalid_former_password' => 'The former password is invalid.',
         'type_changed' => 'User type updated successfully.',
         'avatar_changed' => 'User avatar updated successfully.',
+        'cover_changed' => 'User cover updated successfully.',
         'with_histories' => 'Users with histories retrieved successfully.',
         'with_medals' => 'Users with medals retrieved successfully.',
     ],

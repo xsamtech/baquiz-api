@@ -11,11 +11,14 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File as FileRule;
 use Illuminate\Validation\ValidationException;
 
 abstract class ApiController extends BaseController
@@ -137,20 +140,32 @@ abstract class ApiController extends BaseController
         }
 
         $data = $request->validate([
-            'files' => ['required', 'array', 'min:1'],
+            'files' => ['sometimes', 'array', 'min:1'],
             'files.*.file_name' => ['sometimes', 'nullable', 'string'],
             'files.*.file_url' => ['required', 'string'],
             'files.*.file_description' => ['sometimes', 'nullable', 'string'],
             'files.*.file_type' => ['sometimes', 'nullable', 'in:video,photo,audio,document,id_card,ad,qr_code'],
+            'uploads' => ['required_without:files', 'array', 'min:1'],
+            'uploads.*' => [FileRule::types(['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mov', 'webm', 'mp3', 'wav', 'ogg', 'm4a', 'pdf', 'doc', 'docx'])->max('100mb')],
+            'upload_descriptions' => ['sometimes', 'array'],
+            'upload_descriptions.*' => ['nullable', 'string'],
         ]);
 
         $foreignKey = Str::singular($record->getTable()).'_id';
-        $files = collect($data['files'])
+        $files = collect($data['files'] ?? [])
             ->map(fn (array $file): File => File::query()->create([
                 ...$file,
                 'file_type' => $file['file_type'] ?? 'photo',
                 $foreignKey => $record->getKey(),
-            ]));
+            ]))
+            ->merge(collect($data['uploads'] ?? [])->values()->map(
+                fn (UploadedFile $upload, int $index): File => $this->storeUploadedFile(
+                    $record,
+                    $foreignKey,
+                    $upload,
+                    $data['upload_descriptions'][$index] ?? null
+                )
+            ));
 
         return $this->handleResponse(
             FileResource::collection($files),
@@ -319,6 +334,45 @@ abstract class ApiController extends BaseController
             '1', 'failed', 'declined', 'cancelled', 'canceled', 'error' => 1,
             '2', 'pending', 'processing', 'in_progress' => 2,
             default => null,
+        };
+    }
+
+    private function storeUploadedFile(Model $record, string $foreignKey, UploadedFile $upload, ?string $description): File
+    {
+        $fileType = $this->uploadedFileType($upload);
+        $path = $upload->store("baquiz/{$record->getTable()}/{$this->uploadedFileFolder($fileType)}", 's3');
+        $dimensions = $fileType === 'photo' ? @getimagesize($upload->getRealPath()) : false;
+
+        return File::query()->create([
+            'file_name' => $upload->getClientOriginalName(),
+            'file_url' => Storage::disk('s3')->url($path),
+            'file_description' => $description,
+            'file_type' => $fileType,
+            'mime_type' => $upload->getMimeType(),
+            'file_size' => $upload->getSize(),
+            'width' => $dimensions[0] ?? null,
+            'height' => $dimensions[1] ?? null,
+            $foreignKey => $record->getKey(),
+        ]);
+    }
+
+    private function uploadedFileType(UploadedFile $upload): string
+    {
+        return match (true) {
+            str_starts_with((string) $upload->getMimeType(), 'image/') => 'photo',
+            str_starts_with((string) $upload->getMimeType(), 'video/') => 'video',
+            str_starts_with((string) $upload->getMimeType(), 'audio/') => 'audio',
+            default => 'document',
+        };
+    }
+
+    private function uploadedFileFolder(string $fileType): string
+    {
+        return match ($fileType) {
+            'photo' => 'photos',
+            'video' => 'videos',
+            'audio' => 'audio',
+            default => 'documents',
         };
     }
 

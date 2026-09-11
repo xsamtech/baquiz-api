@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Resources\FileResource;
 use App\Http\Resources\PasswordResetResource;
 use App\Http\Resources\UserResource;
-use App\Models\File;
 use App\Models\Notification;
 use App\Models\PasswordReset;
 use App\Models\Role;
@@ -108,6 +106,7 @@ class UserController extends ApiController
             'password' => ['required', 'string', 'min:8'],
             'confirm_password' => ['required', 'same:password'],
             'avatar' => ['sometimes', FileRule::image()->max('5mb')],
+            'cover' => ['sometimes', FileRule::image()->max('10mb')],
         ]);
 
         unset($data['confirm_password']);
@@ -117,6 +116,11 @@ class UserController extends ApiController
         if (isset($data['avatar'])) {
             $data['avatar_url'] = $this->storeAvatar($data['avatar']);
             unset($data['avatar']);
+        }
+
+        if (isset($data['cover'])) {
+            $data['cover_url'] = $this->storeCover($data['cover']);
+            unset($data['cover']);
         }
 
         [$user, $passwordResets] = DB::transaction(function () use ($data): array {
@@ -282,7 +286,7 @@ class UserController extends ApiController
         );
     }
 
-    public function addFiles(Request $request, int $id): JsonResponse
+    public function updateCover(Request $request, int $id): JsonResponse
     {
         $user = User::query()->find($id);
 
@@ -291,24 +295,20 @@ class UserController extends ApiController
         }
 
         $data = $request->validate([
-            'files' => ['required', 'array', 'min:1'],
-            'files.*.file_name' => ['sometimes', 'nullable', 'string'],
-            'files.*.file_url' => ['required', 'string'],
-            'files.*.file_description' => ['sometimes', 'nullable', 'string'],
-            'files.*.file_type' => ['sometimes', 'nullable', 'in:video,photo,audio,document,id_card,ad,qr_code'],
+            'cover' => ['required', FileRule::image()->max('10mb')],
         ]);
 
-        $files = collect($data['files'])
-            ->map(fn (array $file): File => File::query()->create([
-                ...$file,
-                'file_type' => $file['file_type'] ?? 'photo',
-                'user_id' => $user->id,
-            ]));
+        $user->update(['cover_url' => $this->storeCover($data['cover'])]);
 
         return $this->handleResponse(
-            FileResource::collection($files),
-            Lang::get('api.files.store')
+            new UserResource($user->refresh()),
+            Lang::get('api.users.cover_changed')
         );
+    }
+
+    public function addFiles(Request $request, int $id): JsonResponse
+    {
+        return parent::addFiles($request, $id);
     }
 
     /**
@@ -387,9 +387,16 @@ class UserController extends ApiController
 
     private function storeAvatar(UploadedFile $avatar): string
     {
-        $path = $avatar->store('avatars', 'public');
+        $path = $avatar->store('baquiz/avatars', 's3');
 
-        return Storage::disk('public')->url($path);
+        return Storage::disk('s3')->url($path);
+    }
+
+    private function storeCover(UploadedFile $cover): string
+    {
+        $path = $cover->store('baquiz/covers', 's3');
+
+        return Storage::disk('s3')->url($path);
     }
 
     private function memberRole(): Role
@@ -411,7 +418,7 @@ class UserController extends ApiController
             'role_description' => [
                 'fr' => 'Personne ou organisation qui utilise les fonctionnalités de la plateforme.',
                 'en' => 'Person or organization that uses the platform\'s features.',
-                'ln' => 'Moto to pe ebongiseli oyo esalelaka makambo ya plateforme.',
+                'ln' => 'Moto to ebongiseli oyo esalelaka plateforme',
             ],
         ]);
     }

@@ -117,7 +117,7 @@ Ensuite "FlexPay" renvoie une réponse :
 =========
 - "code" : Ce code donne le statut de la requête envoyée ("0" pour la requête bien envoyée, et "1" en cas de problème).
 - "reference" : La référence envoyée lors dans la requête. Renvoyé par FlexPay uniquement lorsque le type de transaction est "carte bancaire" (type = 2).
-- "provider_reference" : La référence de la transaction de l’opérateur en cas de succès. Renvoyé par FlexPay uniquement lorsque le type de transaction est "carte bancaire" (type = 2).
+- "provider_reference" : La référence de la transaction de l'opérateur en cas de succès. Renvoyé par FlexPay uniquement lorsque le type de transaction est "carte bancaire" (type = 2).
 - "message" : Ce message est la description de la réponse (Exemple : Transaction envoyée avec succès. Veuillez valider le push message sur votre téléphone) ;
 - "orderNumber" : Le code de la transaction généré par FlexPay. Très utile pour rechercher des paiements dans l'application.
 
@@ -160,4 +160,116 @@ Les contenus doivent toujours respecter (même à l'avenir) ceci :
 - Tout Dropdown, dans le site, doit se fermer quand on clique ailleurs sur la page.
 
 =====================================
+
+1️⃣ Divers :
+- Le logo doit toujours être à gauche. Quand la barre de menu se retrecit et que le logo simple apparait, le logo-text doit disparaitre et non devenir petit (réapparaitre quand on agrandit la barre de menu ; et le logo simple disparait).
+- Dans les petits écrans, quand la barre de menu apparait, il doit avoir une marge supérieur (paddingTop) ayant la taille de la barre du haut, pour que le bouton pour cacher la barre de menu se voie avec l'icône "<i class="bi bi-x"></i>" pour cacher la barre de menu.
+- Dans le Dropdown des notifications, le lien de chaque notification doit être cliquable. On ne peut voir la page "/notifications" que lorsqu'on clique sur "Voir toutes les notifications".
+- Dans les petits écrans, sur le pop-up de recherche, l'autocomplete doit aussi fonctionner comme sur la barre de recherche dans les grands/moyens écrans.
+- A la partie "Contenu" de la page, à la fin tu mets les textes "copyright" comme sur l'écran d'authentification.
+
+2️⃣ Le lien "/account" :
+- Lorsqu'on inscrit un utilisateur, l'avatar est envoyé sur "S3" et non "public".
+- Le profil n'a pas de barre (photo) de couverture ; juste la photo de profil qui doit bien s'ajuster (cercle ; même sur la barre du haut).
+- La localisation de l'utilisateur (city, country) est :
+    - à droite dans les grands/moyens écrans ;
+    - en dessous du rôle dans les petits écrans.
+- Les blocs "Réseaux et sites" et "A propos" doivent avoir un bouton-icône pour faire apparaitre un Modal pour modifier ; et en cliquant sur ce bouton :
+    - "Réseaux et sites" ouvre le Modal pour le formulaire d'ajout des sites web de l'utilisateur comme suit :
+        - le formulaire dépend de la table "websites" ;
+        - il y a toujours un bouton "<i class="bi bi-plus"></i>" pour ajouter un autre groupe des champs pour un site web de plus ; ou bien modifier un site web qui sera aussi dans le modal. Donc le bouton enregistre la liste modifiée ; 
+        - dans le formulaire pour chaque site web, la colonne "logo_icon" enregistre juste le nom de l'icône depuis "Bootstrap Icons" (Exemple : facebook) ; donc, présente déjà l'icône à l'utilisateur. Comme ça, sur le bloc où il y a la liste des sites web de l'utilisateur, tu mets juste par exemple "<i class="bi bi-{website.logo_icon}"></i>", sachant que "website" est un foreach de "user.websites".
+    - "A propos" ouvre le Modal pour modifier/ajouter les informations de l'utilisateur depuis la table "users" hormis le mot de passe.
+- Il faut ajouter :
+    - un bloc pour modifier le mot de passe (ancien mot de passe, nouveau mot de passe et confirmer nouveau mot de passe) ;
+    - un bloc pour désactiver ou supprimer son compte.
+
+3️⃣ Le lien "/" :
+- Dans tous les statistiques sur le tableau de bord (et partout ailleurs d'ailleurs), les nombres doivent être affichés en gérant les mille (K), les millions (M), les milliards (B), etc.
+- Je ne vois aucun graphique (même si c'est vide). Utilise même "ChartJS" ou son équivalent si ça existe sur React.
+- Le bloc "Derniers paiements" doit avoir le tableau ; même s'il n'y a rien, il doit y avoir une ligne avec "colspan" égal au nombre des colonnes et possédant le texte "La liste est encore vide" (ne jamais oublier les 2 langues gérées).
+
+4️⃣ Pour les autres liens (hormis ceux cités ci-haut), tu dois mettre un gros bloc à gauche qui contient le tableau des données ; et un petit bloc à droite pour le formulaire pour ajouter/modifier une donnée (le formulaire se transforme en formulaire pour modifier quand on clique sur l'icône "<i class="bi bi-pencil-fill"></i>" sur une donnée du tableau ; sinon le formulaire sert juste à ajouter une nouvelle donnée). Après à la colonne "Action", il doit y avoir "Voir (<i class="bi bi-eye"></i>)", "Editer (<i class="bi bi-pencil-fill"></i>)" et "Supprimer (<i class="bi bi-trash3"></i>) avec modal pour confirmer la suppression". Et enfin il faut tenir des champs en 2 langues pour les données de type JSON, afin de respecter la technologie "Laravel Translatable". Ne pas oublier les colonnes "created_by", "updated_by" et "deleted_by" de certaines tables, pour enregistrer l'ID de l'utilisateur qui fait une action. Les particularités sont :
+- Le lien "/user" :
+    - le formulaire ressemble a celui de la page "/register" surtout pour ajouter l'avatar. Et, pour choisir le rôle, il y aura une liste déroulante qui affiche la liste des rôles selon la langue de la page. Ensuite, il faut aussi associer le groupe des champs pour les sites web (comme décrit pour le profil concernant la table "websites") de l'utilisateur qu'on veut afficher ;
+    - au-dessus du tableau des données, il y a une liste déroulante pour filtrer l'affichage selon le rôle ou afficher tous les utilisateurs ;
+    - pour chaque donnée sur le tableau, hormis la colonne pour les icônes d'action (voir, modifier, supprimer), il y a une colonne pour modifier le rôle (simple balise SELECT dynamique Ajax avec modal de confirmation) et une autre colonne pour modifier l'état "status" (Dropdown avec modal de confirmation).
+- Le lien "/pricing" :
+    - Chaque ligne des données sur le tableau n'affiche que le contenu du tableau "pricings" :
+        - "pricing_name" : colonne "Designation",
+        - "pricing_type" : colonne "Type" (mettre un nom bilingue selon le type dans la table de la base de données. Exemple : "money" = "Argent" en français) ; et comme c'est un type ENUM, on a une liste déroulante,
+        - "reason" : colonne "Motif" (mettre un nom bilingue selon le motif dans la table de la base de données. Exemple : "clash_create" = "Création clash" en français) ; et comme c'est un type ENUM, on a une liste déroulante,
+        - "pricing_cost" : colonne "Coût en USD".
+    - Dans le formulaire, hormis les champs de la table "pricings" comme les colonnes citées du tableau sur la page, il y a aussi un groupe des champs (bouton "<i class="bi bi-plus"></i>" pour ajouter un autre groupe des champs) qui ajoute une description, pour chaque tarif (table "pricing_descriptions"), avant de tout enregistrer (Tarif et toutes ses descriptions).
+- Le lien "/payment" :
+    - pas de bloc de formulaire ;
+    - au-dessus, les statistiques (En cours, Réussis et Échoués) comme sur le taleau de bord.
+    - au milieu, le tableau de tous les paiements, depuis le plus récent et paginés par 10. Quand on clique pour voir (La seule action possible), on a :
+        - Quelques informations de l'utilisateur qui a lancé la transaction (avatar, noms, a propos, email et téléphone) ;
+        - le montant payé ;
+        - le canal (colonne "channel") utilisé pour payer ;
+        - le type de paiement ("1" pour Mobile money et "2" pour Carte bancaire) ;
+        - le numéro de téléphone utilisé, si le type est "1" ;
+        - l'état (dans la table c'est un chiffre, mais sur la page c'est "1" En cours, "0" Réussi ou "2" Échoués) ;
+        - si la colonne "entity" est "clash", on récupère quelques données du clash par son ID via la colonne "entity_id" ;
+        - le motif de paiement (mettre un nom bilingue selon le motif dans la table de la base de données. Exemple : "clash_create" = "Création clash" en français)
+    - en bas, le tableau de tous les transferts d'argent (table "money_transfers") envoyé aux utilisateurs, depuis le plus récent et paginés par 10. Quand on clique pour voir (La seule action possible), ce tableau s'affiche :
+        - la colonne « Clash » contient les noms des clashs payants (Ce sont les clashs payants qui contiennent les paiements (colonne `money_transfers`.`payment_id`) dont le type de tarif (colonne `pricings`.`type`) est "percentage" ; c'est-à-dire le motif (`payments`.`reason` et `pricings`.`reason`) est "clash_participate") ;
+        - la colonne « Quiz master » contient "avatar + nom complet" du Quiz master propriétaire du clash payant sur chaque ligne du tableau ;
+        - la colonne « Total récolté » contient le montant total des participations dans le clash payant sur chaque ligne du tableau (PRIX_CLASH x PARTICIPATION) ;
+        - la colonne « Montant commission » sur chaque ligne du tableau :
+            - si la colonne `money_transfers`.`has_commission` a la valeur "1", contient les 5% du montant total (voir la colonne « Total récolté ») ;
+            - si la colonne `money_transfers`.`has_commission` a la valeur "0", alors cette colonne sur la page sera vide.
+        - la colonne « Transféré » permet de savoir si l'argent a déjà été transféré au Quiz master. Si la colonne `money_transfers`.`status` a la valeur :
+            - NULL, alors la colonne du tableau sur la page sera « Non »,
+            - "done", la valeur sera « Oui »,
+            - "failed", la valeur sera « Echoué » ;
+        - la colonne « Action » aura juste le bouton pour transférer l'argent au Quiz master, pour les clashs dont l'argent n'a pas encore été transféré (`money_transfers`.`status` est égal à "NULL" ou "failed")
+- Le lien "/clash" :
+    - Pas de bloc de formulaire. Juste un gros bloc pour le tableau des données ;
+    - Un filtre au-dessus pour afficher selon le champ (comme pour les utilisateurs qui affiche selon le rôle), ou voir tous les clashs ;
+    - En cliquant sur une donnée, on peut voir : 
+        - Quiz master (Avatar + nom complet. Depuis colonne  `clashs`.`user_id`),
+        - Photo de couverture (depuis colonne `files`.`clash_id`),
+        - Code,
+        - Descritpion,
+        - Champ (depuis colonne `clashs`.`field_id`),
+        - Commence à / Termine à (des icônes calendrier pour faire plus design),
+        - Prix + Devise,
+        - Est un concours ("0" Non, "1" Oui),
+        - Type (mettre un nom bilingue selon le type dans la table de la base de données. Exemple : "private" = "Privé" en français),
+        - Matière(s) du clash (depuis colonne `subjects`.`clash_id`) : Chaque nom de matière est affichée sous forme de badge 
+        - Nombre de (statistiques affichés avec icônes) :
+            - participants (depuis table pivot "clash_user"),
+            - réactions (depuis table pivot "clash_user"),
+            - médaillés (depuis table "medal_user"),
+            - commentaires (depuis table "comments"),
+        - Liste des 10 récents commentaires ;
+        - Graphique des données (ChartJS ou autre similaire pour React) filtré selon la période (Quotidienne, Hebdomadaire, Mensuelle ou Annuelle) :
+            - participants (depuis table pivot "clash_user"),
+            - réactions (depuis table pivot "clash_user"),
+            - médaillés (depuis table "medal_user"),
+            - commentaires (depuis table "comments"),
+
+- Le lien "/report" :
+    - Pas de bloc de formulaire. Juste un gros bloc pour le tableau des données (depuis la table "reports") ;
+    - les colonnes de la tables sont :
+        - « Signalé par » : "Avatar + Nom complet" (depuis colonne `reports`.`user_id`) :
+        - « Designation » : Les colonnes `reports`.`entity` et `reports`.`entity_id` déterminent ce qui sera affiché sur cette colonne du tableau :
+            - pour "clash", on affiche "Clash : " avec le code du clash (colonne `clashs`.`clash_code`),
+            - pour "subject", on affiche "Matière : " (toujours bilingue) avec le nom de la matière (colonne `subjects`.`subject_name`),
+            - pour "question", on affiche "Question : " (toujours bilingue) avec le contenu de la question (colonne `questions`.`question_content`),
+            - pour "user", on affiche "Membre : " (toujours bilingue) avec "Avatar + nom complet" de l'utilisateur ;
+        - « Motif » (contenu extrait depuis colonne `reports`.`reason_id`.`reason_content`) ;
+        - « Commentaires » (colonne `reports`.`report_content`) ;
+        - « Action » :
+            - Un bouton pour débloquer (<i class="bi bi-unlock"></i>), visible uniquement quand l'auteur du clash ("`reports`.`entity` = 'clash'" ou "`reports`.`entity` = 'subject'" ou encore "`reports`.`entity` = 'question'"), ou bien un utilisateur (`reports`.`entity` = 'user') est bloqué ("`blocked_users`.`user_id` = 'auteur ou utilisateur'" et "`blocked_users`.`is_unlocked` = 0"). Quand on débloque l'utilisateur, `blocked_users`.`is_unlocked` devient 1 ;
+            - Supprimer (<i class="bi bi-trash3"></i>) ;
+    - En cliquant sur une donnée, on peut voir (en plus des données citées pour les colonnes du tableau) :
+        - « Mise en sourdine » (colonne `reports`.`muted`) : "0" Non, "1" Oui ;
+        - « Uniquement pour » (colonne `reports`.`for_user_id`) : "Avatar + nom complet" de l'utilisateur récupéré depuis l'ID dans cette colonne ;
+
+5️⃣ 
+
+
 

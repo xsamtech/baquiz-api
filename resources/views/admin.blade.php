@@ -21,5 +21,6 @@
             data-old='@json(session()->getOldInput())'
             data-user='@json($userData ?? null)'
         ></div>
+        <div id="admin-copyright"></div>
     </body>
 </html>

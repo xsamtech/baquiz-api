@@ -47,6 +47,7 @@ class RegisteredUserController extends Controller
             'surname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'username' => ['required', 'string', 'max:255', 'unique:'.User::class],
+            'country' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:45', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'avatar' => ['sometimes', FileRule::image()->max('5mb')],
@@ -59,6 +60,7 @@ class RegisteredUserController extends Controller
             'surname' => $data['surname'],
             'email' => $data['email'],
             'username' => $data['username'],
+            'country' => $data['country'],
             'phone' => $data['phone'],
             'password' => Hash::make($request->password),
         ];
@@ -68,7 +70,8 @@ class RegisteredUserController extends Controller
         }
 
         if (isset($data['avatar'])) {
-            $attributes['avatar_url'] = Storage::disk('public')->url($data['avatar']->store('avatars', 'public'));
+            $avatarPath = $data['avatar']->store('baquiz/avatars', 's3');
+            $attributes['avatar_url'] = Storage::disk('s3')->url($avatarPath);
         }
 
         $user = User::create($attributes);

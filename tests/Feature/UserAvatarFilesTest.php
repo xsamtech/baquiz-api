@@ -23,6 +23,7 @@ class UserAvatarFilesTest extends TestCase
 
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
+            $table->uuid('uuid')->nullable();
             $table->string('name')->nullable();
             $table->string('firstname')->nullable();
             $table->string('lastname')->nullable();
@@ -39,7 +40,7 @@ class UserAvatarFilesTest extends TestCase
             $table->softDeletes();
         });
 
-        Schema::create('password_resets', function (Blueprint $table): void {
+        Schema::create('password_reset_tokens', function (Blueprint $table): void {
             $table->id();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
@@ -51,7 +52,9 @@ class UserAvatarFilesTest extends TestCase
 
         Schema::create('notifications', function (Blueprint $table): void {
             $table->id();
+            $table->uuid('uuid')->nullable();
             $table->string('type')->nullable();
+            $table->boolean('is_read')->default(false);
             $table->foreignId('from_user_id')->nullable();
             $table->foreignId('to_user_id')->nullable();
             $table->foreignId('message_id')->nullable();
@@ -92,7 +95,7 @@ class UserAvatarFilesTest extends TestCase
 
     public function test_store_saves_avatar_with_storage_and_sets_avatar_url(): void
     {
-        Storage::fake('public');
+        Storage::fake('s3');
 
         $response = $this->postJson('/api/users', [
             'firstname' => 'Ada',
@@ -107,8 +110,7 @@ class UserAvatarFilesTest extends TestCase
         $avatarUrl = $response->json('data.users.avatar_url');
 
         $this->assertIsString($avatarUrl);
-        $this->assertStringContainsString('/storage/avatars/', $avatarUrl);
-        Storage::disk('public')->assertExists(Str($avatarUrl)->after('/storage/')->toString());
+        $this->assertNotEmpty(Storage::disk('s3')->allFiles('baquiz/avatars'));
         $this->assertDatabaseCount('files', 0);
     }
 
@@ -206,7 +208,7 @@ class UserAvatarFilesTest extends TestCase
 
     public function test_update_avatar_saves_avatar_without_creating_file_record(): void
     {
-        Storage::fake('public');
+        Storage::fake('s3');
         $user = User::factory()->create([
             'firstname' => 'Grace',
             'avatar_url' => null,
@@ -222,8 +224,7 @@ class UserAvatarFilesTest extends TestCase
         $avatarUrl = $response->json('data.avatar_url');
 
         $this->assertIsString($avatarUrl);
-        $this->assertStringContainsString('/storage/avatars/', $avatarUrl);
-        Storage::disk('public')->assertExists(Str($avatarUrl)->after('/storage/')->toString());
+        $this->assertNotEmpty(Storage::disk('s3')->allFiles('baquiz/avatars'));
         $this->assertDatabaseCount('files', 0);
     }
 
