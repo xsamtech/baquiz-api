@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\Concerns\HandlesSocialContent;
 use App\Http\Resources\ClashResource;
 use App\Models\Clash;
+use App\Models\History;
 use App\Models\Notification;
 use App\Models\Role;
 use App\Models\Subscription;
@@ -154,6 +155,13 @@ class ClashController extends ApiController
         if ($data['participated']) {
             $clash->participants()->syncWithoutDetaching([
                 $userId => ['participated' => true],
+            ]);
+
+            History::query()->create([
+                'entity' => 'clash',
+                'entity_id' => $clash->id,
+                'action' => 'participate',
+                'user_id' => $userId,
             ]);
 
             Notification::query()->create([

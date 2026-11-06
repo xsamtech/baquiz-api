@@ -37,14 +37,22 @@ CREATE TABLE IF NOT EXISTS `users` (
   `avatar_url` TEXT NULL,
   `cover_url` TEXT NULL,
   `promo_code` VARCHAR(45) NULL,
+  `promo_code_at` DATETIME NULL,
   `two_factor_secret` TEXT NULL,
   `two_factor_recovery_codes` TEXT NULL,
   `two_factor_email_confirmed_at` TIMESTAMP NULL,
   `two_factor_phone_confirmed_at` TIMESTAMP NULL,
   `tips_at_every_login` TINYINT NOT NULL DEFAULT 1,
   `is_online` TINYINT NOT NULL DEFAULT 1,
-  `certified_at` DATETIME NULL,
+  `belongs_to` BIGINT NULL,
+  `referral_code_used` VARCHAR(45) NULL,
+  `child_of` BIGINT NULL,
+  `child_lock_code` VARCHAR(45) NULL,
   `status` ENUM('created', 'activated', 'disabled', 'blocked', 'deleted') NOT NULL DEFAULT 'created',
+  `type` ENUM('uncertified', 'certifying', 'certified') NOT NULL DEFAULT 'uncertified',
+  `premium_started_at` TIMESTAMP NULL,
+  `premium_expires_at` TIMESTAMP NULL,
+  `premium_duration_months` TINYINT UNSIGNED NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` TIMESTAMP NULL,
@@ -147,17 +155,24 @@ CREATE TABLE IF NOT EXISTS `payments` (
   `order_number` TEXT NULL,
   `amount` DECIMAL(12,2) NULL,
   `amount_customer` DECIMAL(12,2) NULL,
+  `coins_amount` BIGINT NULL,
+  `coin_unit_price` DECIMAL(12,6) NULL,
+  `premium_duration_months` TINYINT UNSIGNED NULL,
+  `premium_plan_amount` DECIMAL(12,2) NULL,
+  `premium_plan_currency` VARCHAR(45) NULL,
   `phone` VARCHAR(45) NULL,
   `currency` VARCHAR(45) NULL,
   `channel` VARCHAR(45) NULL,
   `type` INT NOT NULL,
   `status` INT NULL,
-  `reason` ENUM('clash_create', 'clash_participate', 'clash_boost', 'user_certfied', 'ad') NULL,
-  `entity` ENUM('clash', 'user') NULL,
+  `reason` ENUM('clash_create', 'clash_participate', 'clash_boost', 'user_certfied', 'ad', 'coin_price', 'earnings_send') NULL,
+  `entity` ENUM('clash', 'user', 'pricing') NULL,
   `entity_id` BIGINT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` TIMESTAMP NULL,
+  `coins_credited_at` TIMESTAMP NULL,
+  `premium_activated_at` TIMESTAMP NULL,
   `user_id` BIGINT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_payments_UNIQUE` (`id` ASC),
@@ -261,6 +276,7 @@ CREATE TABLE IF NOT EXISTS `clashs` (
   `type` ENUM('public', 'private') NOT NULL DEFAULT 'public',
   `last_boost_at` TIMESTAMP NULL,
   `boost_type` ENUM('daily', 'weekly', 'monthly', 'yearly') NULL,
+  `for_youth` TINYINT NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` TIMESTAMP NULL,
@@ -837,8 +853,13 @@ CREATE TABLE IF NOT EXISTS `pricings` (
   `uuid` CHAR(36) NOT NULL,
   `pricing_name` JSON NOT NULL,
   `pricing_type` ENUM('money', 'percentage') NOT NULL DEFAULT 'money' COMMENT 'The user must pay directly or pay a commission (percentage) on the payment they receive',
-  `reason` ENUM('clash_create', 'clash_participate', 'clash_boost', 'user_certfied', 'ad') NULL,
+  `coins_amount` BIGINT NULL,
+  `reason` ENUM('clash_create', 'clash_participate', 'clash_boost', 'user_certfied', 'ad', 'gift_sent', 'coin_price') NULL,
   `pricing_cost` DECIMAL(12,2) NULL COMMENT 'The cost is always in USD.',
+  `currency` VARCHAR(45) NULL,
+  `image_url` TEXT NULL,
+  `icon` VARCHAR(45) NULL,
+  `color` VARCHAR(45) NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` TIMESTAMP NULL,
@@ -940,7 +961,7 @@ CREATE TABLE IF NOT EXISTS `histories` (
   `word` TEXT NULL COMMENT 'This refers to a search history of a user',
   `entity` ENUM('clash', 'course', 'subject', 'user') NULL,
   `entity_id` BIGINT NULL,
-  `action` ENUM('search', 'view', 'reaction', 'comment', 'report') NULL,
+  `action` ENUM('search', 'view', 'participate', 'reaction', 'gift', 'comment', 'report') NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` TIMESTAMP NULL,
@@ -1640,6 +1661,101 @@ CREATE TABLE IF NOT EXISTS `websites` (
   INDEX `fk_websites_users_idx` (`user_id` ASC),
   CONSTRAINT `fk_websites_users`
     FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `gift_transactions`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gift_transactions` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `quantity` INT UNSIGNED NOT NULL DEFAULT 1,
+  `coins_amount` BIGINT UNSIGNED NOT NULL,
+  `gross_amount` DECIMAL(12,4) NULL,
+  `platform_fee_amount` DECIMAL(12,4) NULL,
+  `creator_earning_amount` DECIMAL(12,4) NULL,
+  `currency` VARCHAR(45) NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `sender_id` BIGINT NULL,
+  `receiver_id` BIGINT NULL,
+  `pricing_id` BIGINT NULL,
+  `history_id` BIGINT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_gifttransactions_UNIQUE` (`id` ASC),
+  INDEX `fk_gifttransactions_sender_idx` (`sender_id` ASC),
+  INDEX `fk_gifttransactions_receiver_idx` (`receiver_id` ASC),
+  INDEX `fk_gifttransactions_pricings_idx` (`pricing_id` ASC),
+  INDEX `fk_gifttransactions_histories_idx` (`history_id` ASC),
+  CONSTRAINT `fk_gifttransactions_sender`
+    FOREIGN KEY (`sender_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_gifttransactions_receiver`
+    FOREIGN KEY (`receiver_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_gifttransactions_pricings`
+    FOREIGN KEY (`pricing_id`)
+    REFERENCES `pricings` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_gifttransactions_histories`
+    FOREIGN KEY (`history_id`)
+    REFERENCES `histories` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `wallets`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `wallets` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `coins_balance` BIGINT NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_wallets_UNIQUE` (`id` ASC),
+  INDEX `fk_wallets_users_idx` (`user_id` ASC),
+  CONSTRAINT `fk_wallets_users`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `child_invitations`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `child_invitations` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `status` ENUM('pending', 'accepted', 'declined') NOT NULL DEFAULT 'pending',
+  `expires_at` TIMESTAMP NULL,
+  `responded_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `parent_user_id` BIGINT NOT NULL,
+  `child_user_id` BIGINT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_childinvitations_UNIQUE` (`id` ASC),
+  INDEX `fk_childinvitations_parentusers_idx` (`parent_user_id` ASC),
+  INDEX `fk_childinvitations_childusers_idx` (`child_user_id` ASC),
+  CONSTRAINT `fk_childinvitations_parentusers`
+    FOREIGN KEY (`parent_user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_childinvitations_childusers`
+    FOREIGN KEY (`child_user_id`)
     REFERENCES `users` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)

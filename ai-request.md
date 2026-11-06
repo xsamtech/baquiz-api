@@ -91,40 +91,6 @@ En fait, quand tu appelles les notifications depuis la table des notifications, 
 
 =====================================
 
-Tu peux générer une méthode principale qui sera utilisée par toutes les APIs qui demandent d'effectuer un paiement. La prochaine fois que je te dirai de créer une méthode dans le projet qui va lancer une transaction de paiement, tu vas simplement appelé cette méthode principale dans la méthode que tu crées, avec les paramètrres qu'il faut.
-Et cette méthode principale, qui sera dans le contrôleur "app/Http/Controllers/Api/ApiController.php" (je te laisse lui donner un nom), dépend de la table "payments" et utilise le service "FlexPay".
-
-=========
-Tout d'abord "FlexPay" demande d'envoyer une requête avec :
-=========
-- Header
-    - "authorization" (Le token d'autorisation obligatoire que le service envoie) : "'Bearer ' . config('services.flexpay.api_token')".
-- Body
-    - "merchant" (Le code Marchand FlexPay) : Appelé via le "config('services.flexpay.merchant')" ;
-    - "type" (Le type de la transaction) : "1" si c'est mobile mone ; et "2" si c'est carte bancaire ;
-    - "reference" (La référence de la transaction) : Générer un code du genre "REF-{8_digits_random_code}-{user_id}" ;
-    - "phone" (Le n° de téléphone du client qui paie) : "Exemple : 243xxxxxxxxx" ; obligatoire quand la transaction est en mobile money (type = 1) ;
-    - "amount" (Le montant de la transaction) ;
-    - "currency" (La devise de la transaction) : USD ou CDF ;
-    - "description" (La description de la transaction) : Surtout utilisé quand la transaction est bancaire (type = 2) ;
-    - "callbackUrl" pour mobile money, et "callback_url" pour carte bancaire (L'url de retour ou le résultat de la transaction sera envoyé) : Ce résultat de la transaction est l'ensemble des données à envoyer en temps réel (Par exemple, un endpoint d'une API locale) à la table "payments". Les données importantes sont par exemple l'état de la transaction (colonne `payments`.`status`) ;
-    - "approve_url" (L'url de redirection si l'opération est approuvée) : Utilisé pour la transaction par carte bancaire (type = 2). C'est "FlexPay" qui s'occupe de la redirection.
-    - "cancel_url" (L'url de redirection si l'opération a été annulée par le client ; en cliquant sur le bouton annuler) : Utilisé pour la transaction par carte bancaire (type = 2). C'est "FlexPay" qui s'occupe de la redirection.
-    - "decline_url" (L'url de redirection si l'opération est approuvée) : Utilisé pour la transaction par carte bancaire (type = 2). C'est "FlexPay" qui s'occupe de la redirection.
-
-=========
-Ensuite "FlexPay" renvoie une réponse :
-=========
-- "code" : Ce code donne le statut de la requête envoyée ("0" pour la requête bien envoyée, et "1" en cas de problème).
-- "reference" : La référence envoyée lors dans la requête. Renvoyé par FlexPay uniquement lorsque le type de transaction est "carte bancaire" (type = 2).
-- "provider_reference" : La référence de la transaction de l'opérateur en cas de succès. Renvoyé par FlexPay uniquement lorsque le type de transaction est "carte bancaire" (type = 2).
-- "message" : Ce message est la description de la réponse (Exemple : Transaction envoyée avec succès. Veuillez valider le push message sur votre téléphone) ;
-- "orderNumber" : Le code de la transaction généré par FlexPay. Très utile pour rechercher des paiements dans l'application.
-
-Je t'ai joint un exemple complet (purchase-sample.txt) d'ancienne méthode où j'ai utilisé FlexPay dans une application E-commerce.
-
-=====================================
-
 1️⃣ Apparemment, il y a des icônes qui ne concordent pas. Pour toutes les icônes du site, tu peux utiliser "bootstrap-icons" et/ou "font-awesome". Ce qui te permettra d'avoir des icônes appropriées pour le bouton "toggle theme Dark/Light", le lien du menu de navigation, les blocs des statistiques sur le tableau de bord, ou autres parties du site.
 👉 Pour la barre de menu, je t'ai joint une image (menu.png) de la disposition de la dimension des icônes et de la police
 
@@ -270,6 +236,51 @@ Les contenus doivent toujours respecter (même à l'avenir) ceci :
         - « Uniquement pour » (colonne `reports`.`for_user_id`) : "Avatar + nom complet" de l'utilisateur récupéré depuis l'ID dans cette colonne ;
 
 5️⃣ 
+
+=====================================
+
+1️⃣ Concernant les tables dans la base des donnnées, j'ai fait quelques changements dont tu dois tenir compte pour modifier les composants concernés (modèles, contrôleurs, etc.) :
+
+- J'ai ajouté les tables :
+    - `wallets` ;
+    - `gift_transactions` ;
+    - `child_invitations`.
+
+- J'ai enlevé la colonne `users`.`certified_at`.
+
+- J'ai ajouté les colonnes :
+    - `users`.`promo_code_at` ;
+    - `users`.`belongs_to` ;
+    - `users`.`referral_code_used` ;
+    - `users`.`child_of` ;
+    - `users`.`child_lock_code` ;
+    - `users`.`type` ;
+    - `users`.`premium_started_at` ;
+    - `users`.`premium_expires_at` ;
+    - `users`.`premium_duration_months` ;
+    - `payments`.`coins_amount` ;
+    - `payments`.`coin_unit_price` ;
+    - `payments`.`premium_duration_months` ;
+    - `payments`.`premium_plan_amount` ;
+    - `payments`.`premium_plan_currency` ;
+    - `payments`.`coins_credited_at` ;
+    - `payments`.`premium_activated_at` ;
+    - `pricings`.`coins_amount` ;
+    - `pricings`.`currency` ;
+    - `pricings`.`image_url` ;
+    - `pricings`.`icon` ;
+    - `pricings`.`color`.
+
+- Pour les colonnes de type "ENUM" :
+    - Pour `payments`.`reason`, j'ai ajouté "coin_price" et "earnings_send" ;
+    - Pour `payments`.`entity`, j'ai ajouté "pricing" ;
+    - Pour `histories`.`action`, j'ai ajouté "participate" et "gift";
+    - Pour `pricings`.`reason`, j'ai ajouté "gift_sent" et "coin_price" ;
+
+
+2️⃣ A cause des colonnes et tables que j'ai modifiées, j'ai fait quelques changements au niveau des fichiers ; si tu peux améliorer (ajouter/enlever/modifier) les codes s'il le faut :
+
+- J'ai modifié la méthode "ClashController::participate" pour qu'il prenne aussi en compte la table `histories` ;
 
 
 
